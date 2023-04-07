@@ -1,10 +1,7 @@
-
-
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 
 class Session {
   Map<String, String> headers = {};
@@ -16,7 +13,8 @@ class Session {
   }
 
   Future<Map> post(String url, dynamic data) async {
-    http.Response response = await http.post(Uri.parse(url), body: data, headers: headers);
+    http.Response response =
+        await http.post(Uri.parse(url), body: data, headers: headers);
     updateCookie(response);
     return json.decode(response.body);
   }
@@ -31,7 +29,6 @@ class Session {
   }
 }
 
-
 class UserRegistrationPage extends StatefulWidget {
   const UserRegistrationPage({super.key});
   @override
@@ -45,27 +42,30 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
   final _passwordController = TextEditingController();
   Session session = Session();
   void _registerUser() async {
-    var url = Uri.parse('https://example.com/register');
+    var url = Uri.parse('http://localhost:3001/signup');
     var response = await http.post(url, body: {
       'name': _nameController.text,
-      'email': _emailController.text,
-      'password': _passwordController.text,
+      'id': _emailController.text,
+      'pswd': _passwordController.text,
     });
     if (response.statusCode == 200) {
       // User registration successful
       // Navigate to home page
       // ignore: use_build_context_synchronously
+      print('User registration successful.');
       Navigator.pop(context);
-      //Navigator.pushReplacementNamed(context, '/home');
+      // Navigator.pushReplacementNamed(context, '/home');
     } else {
       // User registration failed
       // ignore: use_build_context_synchronously
+      print('User registration failed.');
       Navigator.pushReplacementNamed(context, '/');
       //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       //  content: Text('User registration failed.'),
       //));
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

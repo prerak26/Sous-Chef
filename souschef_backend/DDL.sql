@@ -35,6 +35,7 @@ create TABLE Steps
         recipeId INT not null,
         stepNumber INT not null,
         description VARCHAR(500) not null,
+        duration INT not null, -- in seconds
         primary key (recipeId, stepNumber),
         foreign key (recipeId) references Recipes on delete cascade
     );

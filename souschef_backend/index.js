@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const sessions = require('express-session');
 const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const app = express();
 const port = 3001;
 
@@ -36,11 +37,12 @@ app.get('/', (req, res) => {
     res.sendFile('views/index.html', { root: __dirname });
 });
 
-
 app.post('/login', (req, res) => {
-  model.getChef(parseInt(req.body.id))
+  model.getChef(req.body.id)
     .then(response => {
-      if ( (response.length !== 0 && bcrypt.compareSync(req.body.pswd, response[0].hashed_password)) || (req.body.id === process.env.user && req.body.pswd === process.env.password) ) {
+      console.log(response);
+      if ( (response.length !== 0 && bcrypt.compareSync(req.body.pswd, response[0].hashedpassword)) 
+        || (req.body.id === process.env.user && req.body.pswd === process.env.password) ) {
         session = req.session;
         session.userid = req.body.id;
         res.status(200).send(`Hey there, welcome <a href=\'/logout'>click to logout</a>`);
@@ -52,6 +54,52 @@ app.post('/login', (req, res) => {
     .catch(error => {
       res.status(500).send(error);
     });
+})
+
+app.post('/signup', (req, res) => {
+  model.getChef(req.body.id)
+  .then(
+    chefList => {
+      if(chefList.length !== 0) {
+        res.status(403).send('Username already exists');
+      }else{
+        model.createChef(req.body.id, req.body.name, bcrypt.hashSync(req.body.pswd, saltRounds))
+        .then(response => {
+          session = req.session;
+          session.userid = req.body.id;
+          res.status(200).send(req.body.id);
+        })
+        .catch(error => {
+          res.status(500).send(error);
+        });
+      }
+    }
+  );
+})
+
+app.get('/chef/:id', (req, res) => {
+  session = req.session;
+  console.log(session.userid);
+  if (session.userid) {
+    model.getChef(req.params.id)
+    .then(response => {
+      if ( (response.length !== 0) ) {
+        let filteredResponse = {
+          chefId: response[0].chefid,
+          name: response[0].name
+        };
+        res.status(200).send(filteredResponse);
+      }
+      else {
+        res.status(404).send('Chef not found');
+      }
+    })
+    .catch(error => {
+      res.status(500).send(error);
+    });
+  }else{
+    res.status(401).send('Please <a href=\'/\'>login</a> first');
+  }
 })
 
 app.get('/auth', (req, res) => {

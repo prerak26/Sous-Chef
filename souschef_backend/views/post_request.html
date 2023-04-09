@@ -1,0 +1,39 @@
+<html>
+
+<head>
+</head>
+
+<body>
+    <form action="/recipe" method="post">
+        <h2>Check POST request</h2>
+        <div class="input-field">
+            <input type="text" name="req" id="req" placeholder="Enter POST request body">
+        </div>
+        <input type="submit" value="Send Request">
+    </form>
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            const data = new FormData(event.target);
+            let value = Object.fromEntries(data.entries());
+            value.req = JSON.parse(value.req);
+            console.log(value);
+
+            fetch('/recipe', {
+                method: 'POST',
+                headers: {
+                    accept: 'application.json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(value.req),
+                cache: 'default'
+            }).then(e => {
+                console.log(e);
+            })
+        }
+        const form = document.querySelector('form');
+        form.addEventListener('submit', handleSubmit);
+    </script>
+</body>
+
+</html>

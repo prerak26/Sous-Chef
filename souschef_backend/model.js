@@ -8,6 +8,39 @@ const pool = new Pool({
   port: process.env.port
 });
 
+const beginQuery = () => {
+  return new Promise((resolve, reject) => {
+    pool.query('begin', (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results);
+      })
+  })
+}
+
+const rollbackQuery = () => {
+  return new Promise((resolve, reject) => {
+    pool.query('rollback', (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results);
+      })
+  })
+}
+
+const commitQuery = () => {
+  return new Promise((resolve, reject) => {
+    pool.query('commit', (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results);
+      })
+  })
+}
+
 const getChef = (id) => {
   const ID = id;
   return new Promise((resolve, reject) => {
@@ -140,6 +173,9 @@ const createRequirement = (recipeId, stepNumber, serialNumber, ingredientId, qua
 }
 
 module.exports = {
+  beginQuery,
+  rollbackQuery,
+  commitQuery,
   getChef,
   createChef,
   getRecipe,
@@ -149,5 +185,6 @@ module.exports = {
   deleteRecipe,
   createStep,
   deleteSteps,
-  createRequirement
+  createRequirement,
+  getDateTime
 }

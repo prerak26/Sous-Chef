@@ -48,11 +48,12 @@ const getRecipe = (id) => {
 
 const getRecipeId = () => {
   return new Promise((resolve, reject) => {
-    pool.query('SELECT count(*) FROM Recipes', (error, results) => {
+    // pool.query('SELECT count(*) FROM Recipes', (error, results) => {
+    pool.query('WITH totalRecipeCount AS (SELECT COUNT(*) FROM recipes) SELECT * FROM (SELECT num FROM generate_series(0, (select totalRecipeCount.count from totalrecipecount)) num EXCEPT select recipeid from recipes) AS A ORDER BY A.num LIMIT 1;', (error, results) => {
       if (error)
         reject(error);
       if (results)
-        resolve(parseInt(results.rows[0].count));
+        resolve(parseInt(results.rows[0].num));
     })
   })
 }
@@ -77,10 +78,47 @@ const createRecipe = (recipeId, title, serves, visibility, authorId) => {
   })
 }
 
+const updateRecipe = (recipeId, title, serves, visibility, authorId) => {
+  const LASTMODIFIED = getDateTime();
+  return new Promise((resolve, reject) => {
+    pool.query('UPDATE Recipes SET "title" = $2, "serves" = $3, "visibility" = $4, "lastmodified" = $5 WHERE "recipeid" = $1',
+      [recipeId, title, serves, visibility, LASTMODIFIED], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+
+const deleteRecipe = (recipeId) => {
+  return new Promise((resolve, reject) => {
+    pool.query('DELETE FROM Recipes WHERE "recipeid"=$1', [recipeId], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
 const createStep = (recipeId, stepNumber, desc, duration) => {
   return new Promise((resolve, reject) => {
     pool.query('INSERT INTO Steps (recipeId, stepNumber, description, duration) VALUES ($1, $2, $3, $4)',
       [recipeId, stepNumber, desc, duration], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const deleteSteps = (recipeId) => {
+  return new Promise((resolve, reject) => {
+    pool.query('DELETE FROM Steps WHERE recipeid=$1',
+      [recipeId], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -107,6 +145,9 @@ module.exports = {
   getRecipe,
   getRecipeId,
   createRecipe,
+  updateRecipe,
+  deleteRecipe,
   createStep,
+  deleteSteps,
   createRequirement
 }

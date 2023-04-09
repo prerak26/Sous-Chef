@@ -128,13 +128,95 @@ app.get('/recipe/:id', (req, res) => {
     });
 });
 
+app.delete('/recipe/:id', (req, res) => {
+  session = req.session;
+  // if(session.userid)
+    model.getRecipe(parseInt(req.params.id))
+    .then(response => {
+      if((response.length !== 0)) {
+        reqRecipe = response[0];
+        // if(reqRecipe.authorid !== session.userid){
+        //   res.status(403).send({ message: "Unauthorized access" });
+        // }else{
+          model.deleteRecipe(reqRecipe.recipeid)
+          .then(delRecipeResponse => {
+            if((response.length) !== 0){
+              res.status(200).send({ message: "Recipe deleted successfully" });
+            }else{
+              res.status(404).send({ message: "Recipe couldn't be deleted"});
+            }
+          })
+          .catch(error => {
+            res.status(500).send(error);
+          });
+          // res.status(200).send({ message: "Recipe deleted successfully" });
+        // }
+      }else{
+        res.status(200).send({message: "Recipe already deleted" });
+      }
+    })
+    .catch(error => {
+      res.status(500).send(error);
+    });
+  // else{
+  //   res.status(401).send({ message: "Please login first" });
+  // }
+});
+
+app.post('/recipe/:id', (req, res) => {
+  session = req.session;
+  // if(session.userid)
+    model.getRecipe(parseInt(req.params.id))
+    .then(response => {
+      if((response.length !== 0)) {
+        reqRecipe = response[0];
+        // if(reqRecipe.authorid !== session.userid){
+        //   res.status(403).send({ message: "Unauthorized access" });
+        // }else{
+          model.updateRecipe(parseInt(reqRecipe.recipeid), req.body.title, parseInt(req.body.serves),
+          (req.body.isPublic ? 'public' : 'private'), 'aditya69')
+          .then(recipeResponse => {
+            model.deleteSteps(parseInt(reqRecipe.recipeid))
+            .then(deleteStepsResponse => {
+            for (let i = 0; i < req.body.steps.length; i++)
+              model.createStep(parseInt(reqRecipe.recipeid), i + 1, req.body.steps[i].desc, req.body.steps[i].duration)
+                .then(stepResponse => {
+                  for (let j = 0; j < req.body.steps[i].ingredients.length; j++)
+                    model.createRequirement(parseInt(reqRecipe.recipeid), i + 1, j + 1, 
+                      req.body.steps[i].ingredients[j].id,
+                      req.body.steps[i].ingredients[j].quantity)
+                      .then(requirementResponse => { })
+                      .catch(error => {
+                        res.status(500).send(error);
+                      });
+                })
+                .catch(error => {
+                  res.status(500).send(error);
+                });
+            })
+            .catch(error => {
+              res.status(500).send(error);
+            }
+            );
+            res.status(200).send({ message: "Recipe updated successfully" });
+          })
+          .catch(error => {
+            res.status(500).send(error);
+          });
+        // }
+      }
+    })
+  // else
+  //   res.status(401).send({ message: "Please login first" });
+});
+
 app.post('/recipe', (req, res) => {
   session = req.session;
-  if (session.userid)
+  // if (session.userid)
     model.getRecipeId()
       .then(recipeId => {
         model.createRecipe(recipeId, req.body.title, parseInt(req.body.serves),
-          (req.body.isPublic ? 'public' : 'private'), session.userid)
+          (req.body.isPublic ? 'public' : 'private'), 'aditya69')
           .then(recipeResponse => {
             for (let i = 0; i < req.body.steps.length; i++)
               model.createStep(recipeId, i + 1, req.body.steps[i].desc, req.body.steps[i].duration)
@@ -161,8 +243,8 @@ app.post('/recipe', (req, res) => {
         console.log(session);
         res.status(500).send(error);
       });
-  else
-    res.status(401).send({ message: "Login first" });
+  // else
+  //   res.status(401).send({ message: "Login first" });
 });
 
 app.listen(port, () => {

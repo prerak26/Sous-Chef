@@ -29,12 +29,12 @@ class Step{
 }
 
 class Recipe{
-  String? title;
-  int? serves;
+  String title;
+  int serves;
   bool isPublic = false;
   //List<String> ingredients = [];
   List<Step> steps = [];
-  Recipe({this.title, this.serves, required this.isPublic,required this.steps});
+  Recipe({required this.title, required this.serves, required this.isPublic,required this.steps});
    Map<String, dynamic> toJson() => {
         'title': title,
         'serves': serves,
@@ -53,8 +53,8 @@ class RecipeForm extends StatefulWidget {
 class _RecipeFormState extends State<RecipeForm> {
   final _formKey = GlobalKey<FormState>();
 
-  String? _name;
-  int? _serves;
+  //String _name;
+  //int _serves;
   //List<String> _ingredients = [];
   List<Step> _instructions = [];
   bool _isPublic = true;
@@ -63,17 +63,20 @@ class _RecipeFormState extends State<RecipeForm> {
   final _servesController = TextEditingController();
   final _instcontroller = TextEditingController();
   final _durationcontroller = TextEditingController();
+  Recipe recipe = Recipe(title:"",serves: 0,isPublic: true, steps: []);
   void _saveRecipe() async {
+
     if (_formKey.currentState!.validate()) {
-      var recipe =  Recipe(
-        isPublic:_isPublic,
-        title:_name,
-        serves: _serves,
-        steps: _instructions,
-      );
+      
+        recipe.isPublic = _isPublic;
+        recipe.title = _nameController.text;
+        recipe.serves = int.parse(_servesController.text);
+        recipe.steps = _instructions;
+    
 
       //print(jsonEncode(recipe.toJson()));
       var response = await curr_session.post('http://localhost:3001/recipe', jsonEncode(recipe.toJson()));
+      //rprint(jsonEncode(recipe.toJson()));
       if(response.statusCode == 200){
          //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           //content: Text('Recipie Created'),
@@ -107,7 +110,7 @@ class _RecipeFormState extends State<RecipeForm> {
                   return null;
                 },
                 onSaved: (value) {
-                  _name = value!;
+                  //_name = _nameController.text;
                 },
               ),
               SizedBox(height: 16),
@@ -122,7 +125,7 @@ class _RecipeFormState extends State<RecipeForm> {
                   return null;
                 },
                 onSaved: (value) {
-                  _serves = int.parse(_servesController.text);
+                  //_serves = int.parse(_servesController.text);
                 },
               ),
               SizedBox(height: 16),

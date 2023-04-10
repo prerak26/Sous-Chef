@@ -27,18 +27,18 @@ class Session {
   Session({required this.headers});
   Future<http.Response> get(String url) async {
     http.Response response = await http.get(Uri.parse(url), headers: headers);
-    //print(headers);
+    
     updateCookie(response);
     return response;
   }
 
   Future<http.Response> post(String url, dynamic data) async {
-    //print(headers);
-    print(data);
+    
+    
     http.Response response =
         await http.post(Uri.parse(url), body: data, headers: headers);
     updateCookie(response);
-    print(headers);
+    print(data);
     //print()
     
     return response;

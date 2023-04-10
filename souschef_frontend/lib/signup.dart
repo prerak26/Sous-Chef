@@ -2,32 +2,9 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-class Session {
-  Map<String, String> headers = {};
-
-  Future<Map> get(String url) async {
-    http.Response response = await http.get(Uri.parse(url), headers: headers);
-    updateCookie(response);
-    return json.decode(response.body);
-  }
-
-  Future<Map> post(String url, dynamic data) async {
-    http.Response response =
-        await http.post(Uri.parse(url), body: data, headers: headers);
-    updateCookie(response);
-    return json.decode(response.body);
-  }
-
-  void updateCookie(http.Response response) {
-    String? rawCookie = response.headers['set-cookie'];
-    if (rawCookie != null) {
-      int index = rawCookie.indexOf(';');
-      headers['secret'] =
-          (index == -1) ? rawCookie : rawCookie.substring(0, index);
-    }
-  }
-}
+import 'package:souschef_frontend/main.dart';
+import 'package:souschef_frontend/myrecipieholder.dart';
+import 'package:souschef_frontend/userhome.dart';
 
 class UserRegistrationPage extends StatefulWidget {
   const UserRegistrationPage({super.key});
@@ -38,31 +15,40 @@ class UserRegistrationPage extends StatefulWidget {
 class _UserRegistrationPageState extends State<UserRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _idController = TextEditingController();
   final _passwordController = TextEditingController();
-  Session session = Session();
+  
   void _registerUser() async {
-    var url = Uri.parse('http://localhost:3001/signup');
-    var response = await http.post(url, body: {
+
+    var response = await curr_session.post('http://localhost:3001/signup', {
       'name': _nameController.text,
-      'id': _emailController.text,
+      'id': _idController.text,
       'pswd': _passwordController.text,
     });
+
+    //var url = Uri.parse('http://localhost:3001/signup');
+    //var response = await http.post(url, body: {
+    //  'name': _nameController.text,
+    //  'id': _idController.text,
+    //  'pswd': _passwordController.text,
+    //});
+    //print(response);
     if (response.statusCode == 200) {
-      // User registration successful
-      // Navigate to home page
-      // ignore: use_build_context_synchronously
-      print('User registration successful.');
-      Navigator.pop(context);
-      // Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      // User registration failed
-      // ignore: use_build_context_synchronously
-      print('User registration failed.');
-      Navigator.pushReplacementNamed(context, '/');
-      //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      //  content: Text('User registration failed.'),
-      //));
+      session.isLogged = true;
+      session.id = _idController.text;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('User registration sucessful.'),
+      ));
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const placePage()));
+      
+    }
+    else if(response.statusCode == 403){}
+    else {
+      
+      
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('User registration failed.'),
+      ));
     }
   }
 
@@ -92,13 +78,13 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                 },
               ),
               TextFormField(
-                controller: _emailController,
+                controller: _idController,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'Id',
                 ),
                 validator: (value) {
                   if (value!.isEmpty) {
-                    return 'Please enter your email';
+                    return 'Please enter your Id';
                   }
                   return null;
                 },

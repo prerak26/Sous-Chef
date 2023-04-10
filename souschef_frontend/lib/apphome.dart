@@ -34,6 +34,7 @@ List<PersistentBottomNavBarItem> _navBarItems() {
                '/':(context) => const MyHomePage(),
         
                 '/signup': (context) => const UserRegistrationPage(),
+                '/home':(context) => const placePage(),
             },
           ),
     ),
@@ -74,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
   super.initState();
-    _controller = PersistentTabController(initialIndex: 0);
+    _controller = PersistentTabController(initialIndex: 1);
   }
 
 

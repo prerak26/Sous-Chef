@@ -1,7 +1,11 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:souschef_frontend/apphome.dart';
+import 'package:souschef_frontend/myrecipieholder.dart';
 import 'package:souschef_frontend/signup.dart';
-
+import 'package:http/http.dart' as http;
 
 
 
@@ -13,15 +17,40 @@ class Globals{
   bool isLogged = false;
   var id  = "";
   var pswd = "";
-  Globals(){
-    isLogged = false;
-    id = "";
-    pswd = "";
-  }
+  
 }
 
 Globals session = Globals();
 
+class Session {
+  Map<String, String> headers = {};
+
+  Future<http.Response> get(String url) async {
+    http.Response response = await http.get(Uri.parse(url), headers: headers);
+    updateCookie(response);
+    return response;
+  }
+
+  Future<http.Response> post(String url, dynamic data) async {
+    http.Response response =
+        await http.post(Uri.parse(url), body: data, headers: headers);
+    updateCookie(response);
+    //print()
+    
+    return response;
+  }
+
+  void updateCookie(http.Response response) {
+    String? rawCookie = response.headers['set-cookie'];
+    if (rawCookie != null) {
+      int index = rawCookie.indexOf(';');
+      headers['secret'] =
+          (index == -1) ? rawCookie : rawCookie.substring(0, index);
+    }
+  }
+}
+
+Session curr_session = Session();
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   
@@ -40,6 +69,7 @@ class MyApp extends StatelessWidget {
         '/':(context) => const MyHomePage(),
         //'/recipes':(context) => const MaterialApp(home : RecipeList()),
         //'/signup': (context) => const UserRegistrationPage(),
+        
         
       },
       

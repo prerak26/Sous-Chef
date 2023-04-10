@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:souschef_frontend/main.dart';
+import 'package:souschef_frontend/myrecipieholder.dart';
 import 'package:souschef_frontend/signup.dart';
+import 'package:souschef_frontend/userhome.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,11 +15,29 @@ class _LoginPageState extends State<LoginPage> {
   String _username = '';
   String _password = '';
 
-  void _login(){
-    if(_username == 'username' && _password == 'password'){
-      Navigator.pushReplacementNamed(context, '/');
-    }
+  void _login() async{
     
+    var response = await curr_session.post('http://localhost:3001/login', {
+      'id':_username,
+      'pswd':_password,
+    });
+    if(response.statusCode == 200){
+
+      session.isLogged = true;
+      session.id = _username;
+      session.pswd = _password;
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const placePage()));
+    }
+    else if(response.statusCode == 403){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Invalid username or password.'),
+      ));
+    }
+    else{
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Somthing went wrong.'),
+      ));
+    }
   }
   void _signup(){
     Navigator.pushReplacementNamed(context, '/signup');

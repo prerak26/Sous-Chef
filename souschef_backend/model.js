@@ -347,6 +347,45 @@ const getRequirementsByRecipe = (recipeId) => {
   })
 }
 
+const getIngredientByKey = (key, lim) => {
+  const searchKey = key+'%';
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM Ingredients WHERE name like $1 limit $2',
+      [searchKey, lim], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const getTagByKey = (key, lim) => {
+  const searchKey = key+'%';
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM Tags WHERE name like $1 limit $2',
+      [searchKey, lim], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const getChefByKey = (key, lim) => {
+  const searchKey = key+'%';
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM Chefs WHERE chefId like $1 OR name like $1 limit $2',
+      [searchKey, lim], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
 module.exports = {
   beginQuery,
   rollbackQuery,
@@ -375,5 +414,8 @@ module.exports = {
   createIngredient,
   getTagId,
   createTag,
-  getRequirementsByRecipe
+  getRequirementsByRecipe,
+  getIngredientByKey,
+  getTagByKey,
+  getChefByKey
 }

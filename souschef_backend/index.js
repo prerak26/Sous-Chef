@@ -101,7 +101,7 @@ app.get('/auth', (req, res) => {
     res.status(401).send({ message: "Please login first" });
     console.log(model.getDateTime(), 'GET: /auth', 401);
   }
-})
+});
 
 // Logout user [auth] [Logout button]
 app.get('/logout', (req, res) => {
@@ -514,7 +514,7 @@ app.get('/tag', (req, res) => {
     res.status(400).send({ message: "Limit is NaN" });
     console.log(model.getDateTime(), 'GET: /tag', 400);
   }
-})
+});
 
 // Create a bookmark [auth] [Bookmark button]
 app.post('/bookmark/:id', (req, res) => {

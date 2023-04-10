@@ -321,7 +321,28 @@ app.delete('/recipe/:id', (req, res) => {
 });
 
 // Add all ingredients of recipe to shopping list by id [auth] [Add recipe to shopping list button]
-app.post('/recipe/shop/:id')
+app.post('/recipe/shop/:id', (req, res) => {
+  session = req.session;
+  if (session.userid)
+  model.getRequirementsByRecipe(parseInt(req.params.id))
+  .then(async response =>
+    await Promise.all(response.map( async (ingredient) => {
+        await model.updateShoppingListIngredient(session.userid,parseInt(ingredient.ingredientid),parseInt(Number(ingredient.sum)))
+        .catch(error => {
+          errorCaught = error;
+        })
+      }
+    ))
+  )
+  .finally(() => {
+    res.status(200).send({ message: "Recipe added to shopping list" });
+    console.log(model.getDateTime(), 'POST: /recipe/shop/:id', 200);
+  });
+  else {
+    res.status(401).send({ message: "Please login first" });
+    console.log(model.getDateTime(), 'POST: /recipe/shop/:id', 401);
+  }
+});
 
 // Get recipes list [Discover View]
 app.get('/recipe')

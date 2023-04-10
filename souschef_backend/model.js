@@ -193,6 +193,20 @@ const createShoppingListIngredient = (ingredientId, chefId, quantity) => {
   })
 }
 
+const updateShoppingListIngredient = (chefId, ingredientId, quantity) => {
+  const INGREDIENTID = ingredientId;
+  const CHEFID = chefId;
+  const QUANTITY = quantity;
+  return new Promise((resolve, reject) => {
+      pool.query('INSERT INTO ShoppingList (chefid, ingredientid, quantity) VALUES ($1, $2, $3) ON CONFLICT(chefid, ingredientid) DO UPDATE SET quantity = (SELECT quantity FROM ShoppingList AS A WHERE A.chefid = $1 AND A.ingredientid = $2 LIMIT 1) + $3;', [CHEFID, INGREDIENTID, QUANTITY], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
 const deleteShoppingListIngredient = (ingredientId, chefId) => {
   const INGREDIENTID = ingredientId;
   const CHEFID = chefId;
@@ -252,6 +266,18 @@ const createTag = (tagId, name) => {
   })
 }
 
+const getRequirementsByRecipe = (recipeId) => {
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT SUM(quantity), ingredientid FROM requirements WHERE recipeid = $1 GROUP BY ingredientid;',
+      [recipeId], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
 module.exports = {
   beginQuery,
   rollbackQuery,
@@ -269,9 +295,11 @@ module.exports = {
   getDateTime,
   getShoppingList,
   createShoppingListIngredient,
+  updateShoppingListIngredient,
   deleteShoppingListIngredient,
   getIngredientId,
   createIngredient,
   getTagId,
-  createTag
+  createTag,
+  getRequirementsByRecipe
 }

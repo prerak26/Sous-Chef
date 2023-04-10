@@ -14,13 +14,13 @@ void main() {
 }
 
 class Globals{
-  bool isLogged = false;
-  var id  = "";
-  var pswd = "";
-  
+  bool isLogged;
+  String? id;
+  String? pswd;
+  Globals({required this.isLogged,this.id,this.pswd});
 }
 
-Globals session = Globals();
+Globals session = Globals(isLogged:false,id:"",pswd:"");
 
 class Session {
   Map<String, String> headers = {};

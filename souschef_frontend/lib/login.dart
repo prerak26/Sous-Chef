@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/myrecipieholder.dart';
-import 'package:souschef_frontend/signup.dart';
-import 'package:souschef_frontend/userhome.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:shared_preferences_web/shared_preferences_web.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
@@ -12,20 +11,58 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  String _username = '';
-  String _password = '';
+  //String _username = '';
+  //String _password = '';
+
+  //final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _loadCredentials();
+  }
+
+  void _loadCredentials() async {
+    //SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      
+      _usernameController.text = prefs.getString("username") ?? "";
+      _passwordController.text = prefs.getString("password") ?? "";
+      _rememberMe = prefs.getBool("rememberMe") ?? false;
+    });
+  }
+
+  void _saveCredentials() async {
+    //SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("username", _usernameController.text);
+    await prefs.setString("password", _passwordController.text);
+    await prefs.setBool("rememberMe", _rememberMe);
+    
+  }
+
 
   void _login() async{
     
     var response = await curr_session.post('http://localhost:3001/login', {
-      'id':_username,
-      'pswd':_password,
+      'id':_usernameController.text,
+      'pswd':_passwordController.text,
     });
     if(response.statusCode == 200){
 
       session.isLogged = true;
-      session.id = _username;
-      session.pswd = _password;
+      session.id = _usernameController.text;
+      session.pswd = _passwordController.text;
+      if(_rememberMe == true){
+        
+        _saveCredentials();
+      }
+      
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => const placePage()));
     }
     else if(response.statusCode == 403){
@@ -54,9 +91,10 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             TextField(
+              controller: _usernameController,
               onChanged: (value) {
                 setState(() {
-                  _username = value.trim();
+                  //_username = value.trim();
                 });
               },
               decoration: const InputDecoration(
@@ -65,15 +103,29 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 20),
             TextField(
+              controller: _passwordController,
               obscureText: true,
               onChanged: (value) {
                 setState(() {
-                  _password = value.trim();
+                  //_password = value.trim();
                 });
               },
               decoration: const InputDecoration(
                 hintText: 'Enter password',
               ),
+            ),
+            Row(
+              children: [
+                Checkbox(
+                  value: _rememberMe,
+                  onChanged: (value) {
+                    setState(() {
+                      _rememberMe = value!;
+                    });
+                  },
+                ),
+                const Text("Remember me"),
+              ],
             ),
             const SizedBox(height: 20),
             ElevatedButton(

@@ -39,6 +39,9 @@ dependencies:
   persistent_bottom_nav_bar: ^4.0.2
   http: ^0.13.5
   dio: ^5.1.1
+  shared_preferences: ^2.1.0
+ 
+  
   
 
 dev_dependencies:

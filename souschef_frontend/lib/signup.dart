@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/myrecipieholder.dart';
 import 'package:souschef_frontend/userhome.dart';
@@ -17,7 +18,8 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
   final _nameController = TextEditingController();
   final _idController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+  bool _rememberMe = false;
+
   void _registerUser() async {
 
     var response = await curr_session.post('http://localhost:3001/signup', {
@@ -33,9 +35,22 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
     //  'pswd': _passwordController.text,
     //});
     //print(response);
+
+  void _saveCredentials() async {
+    //SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("username", _idController.text);
+    await prefs.setString("password", _passwordController.text);
+    await prefs.setBool("rememberMe", _rememberMe);
+    
+  }
+
     if (response.statusCode == 200) {
       session.isLogged = true;
       session.id = _idController.text;
+      if(_rememberMe == true){
+        _saveCredentials();
+      }
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('User registration sucessful.'),
       ));
@@ -102,6 +117,19 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                   return null;
                 },
               ),
+              Row(
+              children: [
+                Checkbox(
+                  value: _rememberMe,
+                  onChanged: (value) {
+                    setState(() {
+                      _rememberMe = value!;
+                    });
+                  },
+                ),
+                const Text("Remember me"),
+              ],
+            ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(

@@ -126,16 +126,16 @@ app.get('/chef/:id', (req, res) => {
           name: response[0].name
         };
         res.status(200).send(filteredResponse);
-        console.log(model.getDateTime(), 'GET: /logout/:id', 200);
+        console.log(model.getDateTime(), 'GET: /chef/:id', 200);
       }
       else {
         res.status(404).send({ message: "Chef not found" });
-        console.log(model.getDateTime(), 'GET: /logout/:id', 404);
+        console.log(model.getDateTime(), 'GET: /chef/:id', 404);
       }
     })
     .catch(error => {
       res.status(500).send(error);
-      console.log(model.getDateTime(), 'GET: /logout/:id', 500);
+      console.log(model.getDateTime(), 'GET: /chef/:id', 500);
     });
 });
 
@@ -270,7 +270,6 @@ app.post('/recipe/:id', (req, res) => {
         } else if (reqRecipe.authorid === session.userid) {
           res.status(200).send({ message: "New recipe added" });
           console.log(model.getDateTime(), 'POST: /recipe/:id', 200);
-
         }
       });
   else {
@@ -340,13 +339,74 @@ app.post('/tag')
 app.get('/tag')
 
 // Get user shopping list by id [auth] [Shopping List View]
-app.get('/shoppinglist')
+// app.get('/shoppinglist')
+app.get('/shoppinglist', (req, res) => {
+  session = req.session;
+  if(session.userid)
+      model.getShoppingList(parseInt(session.userid))
+        .then(response => {
+            res.status(200).send(response);
+            console.log(model.getDateTime(), 'GET: /shoppinglist', 200);
+        })
+        .catch(error => {
+          res.status(500).send(error);
+          console.log(model.getDateTime(), 'GET: /shoppinglist', 500);
+        });
+  else{
+    res.status(403).send({ message: "Unauthorized access" });
+    console.log(model.getDateTime(), 'GET: /shoppinglist', 403);
+  }
+});
 
 // Create ingredient in shopping list by id [auth] [Add ingredient to shopping list view]
-app.post('/shoppinglist/:id')
+app.post('/shoppinglist/:id', (req, res) => {
+  session = req.session;
+  let errorCaught = null;
+  if(session.userid)
+    model.deleteShoppingListIngredient(parseInt(req.params.id), session.userid)
+    .then(async deleteResponse => {
+      await model.createShoppingListIngredient(parseInt(req.params.id), session.userid, parseInt(req.body.quantity))
+      .then(async createResponse => {
+        res.status(200).send({ message: "New ingredient added in shopping list" });
+        console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 200);
+      })
+      .catch(error => {
+        errorCaught = error;
+      });
+    })
+    .catch(error => {
+      errorCaught = error;
+    })
+    .finally(() => {
+      if (errorCaught !== null) {
+        res.status(500).send(errorCaught);
+        console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 500);
+      }
+    });
+  else{
+    res.status(403).send({ message: "Unauthorized access" });
+    console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 403);
+  }
+});
 
 // Delete ingredient in shopping list by id [auth] [Delete ingredient from shopping list view]
-app.delete('/shoppinglist/:id')
+app.delete('/shoppinglist/:id', (req, res) => {
+  session = req.session;
+  if(session.userid)
+    model.deleteShoppingListIngredient(parseInt(req.params.id), session.userid, parseInt(req.body.quantity))
+      .then(response => {
+        res.status(200).send({ message: "Ingredient deleted" });
+        console.log(model.getDateTime(), 'DELETE: /shoppinglist/:id', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'DELETE: /shoppinglist/:id', 500);
+      });
+  else{
+    res.status(403).send({ message: "Unauthorized access" });
+    console.log(model.getDateTime(), 'DELETE: /shoppinglist/:id', 403);
+  }
+});
 
 app.listen(port, () => {
   console.log(`App running on port ${port}.`)

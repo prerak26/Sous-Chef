@@ -172,6 +172,45 @@ const createRequirement = (recipeId, stepNumber, serialNumber, ingredientId, qua
   })
 }
 
+const getShoppingList = (id) => {
+  const ID = id;
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM ShoppingList WHERE chefId=$1', [ID], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
+const createShoppingListIngredient = (ingredientId, chefId, quantity) => {
+  const INGREDIENTID = ingredientId;
+  const CHEFID = chefId;
+  const QUANTITY = quantity;
+  return new Promise((resolve, reject) => {
+    pool.query('INSERT INTO ShoppingList (chefid, ingredientid, quantity) VALUES ($1, $2, $3)', [CHEFID, INGREDIENTID, QUANTITY], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
+const deleteShoppingListIngredient = (ingredientId, chefId) => {
+  const INGREDIENTID = ingredientId;
+  const CHEFID = chefId;
+  return new Promise((resolve, reject) => {
+    pool.query('DELETE FROM ShoppingList WHERE ingredientid=$1 AND chefid=$2', [INGREDIENTID, CHEFID], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
 module.exports = {
   beginQuery,
   rollbackQuery,
@@ -186,5 +225,8 @@ module.exports = {
   createStep,
   deleteSteps,
   createRequirement,
-  getDateTime
+  getDateTime,
+  getShoppingList,
+  createShoppingListIngredient,
+  deleteShoppingListIngredient
 }

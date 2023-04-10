@@ -42,9 +42,8 @@ const commitQuery = () => {
 }
 
 const getChef = (id) => {
-  const ID = id;
   return new Promise((resolve, reject) => {
-    pool.query('SELECT * FROM Chefs WHERE chefId=$1', [ID], (error, results) => {
+    pool.query('SELECT * FROM Chefs WHERE chefId=$1', [id], (error, results) => {
       if (error)
         reject(error);
       if (results)
@@ -54,11 +53,8 @@ const getChef = (id) => {
 }
 
 const createChef = (id, name, pswd) => {
-  const ID = id;
-  const NAME = name;
-  const PSWD = pswd;
   return new Promise((resolve, reject) => {
-    pool.query('INSERT INTO Chefs (chefId, name, hashedPassword) VALUES ($1, $2, $3)', [ID, NAME, PSWD], (error, results) => {
+    pool.query('INSERT INTO Chefs (chefId, name, hashedPassword) VALUES ($1, $2, $3)', [id, name, pswd], (error, results) => {
       if (error)
         reject(error);
       if (results)
@@ -68,9 +64,8 @@ const createChef = (id, name, pswd) => {
 }
 
 const getRecipe = (id) => {
-  const ID = id;
   return new Promise((resolve, reject) => {
-    pool.query('SELECT * FROM Recipes where recipeId=$1', [ID], (error, results) => {
+    pool.query('SELECT * FROM Recipes where recipeId=$1', [id], (error, results) => {
       if (error)
         reject(error);
       if (results)
@@ -208,6 +203,49 @@ const deleteShoppingListIngredient = (ingredientId, chefId) => {
       if (results)
         resolve(results.rows);
     })
+const getIngredientId = () => {
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT count(*) FROM Ingredients', (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(parseInt(results.rows[0].count));
+      })
+  })
+}
+
+const createIngredient = (ingredientId, name, kind) => {
+  return new Promise((resolve, reject) => {
+    pool.query('INSERT INTO Ingredients (ingredientId, name, kind) VALUES ($1, $2, $3)',
+      [ingredientId, name, kind], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const getTagId = () => {
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT count(*) FROM Tags', (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(parseInt(results.rows[0].count));
+      })
+  })
+}
+
+const createTag = (tagId, name) => {
+  return new Promise((resolve, reject) => {
+    pool.query('INSERT INTO Tags (ingredientId, name) VALUES ($1, $2)',
+      [tagId, name], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
   })
 }
 
@@ -226,7 +264,14 @@ module.exports = {
   deleteSteps,
   createRequirement,
   getDateTime,
+<<<<<<< HEAD
   getShoppingList,
   createShoppingListIngredient,
   deleteShoppingListIngredient
+=======
+  getIngredientId,
+  createIngredient,
+  getTagId,
+  createTag
+>>>>>>> 5542bfe (Tags and ingredients creation added)
 }

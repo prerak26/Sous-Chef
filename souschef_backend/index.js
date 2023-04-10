@@ -327,13 +327,71 @@ app.post('/recipe/shop/:id')
 app.get('/recipe')
 
 // Create ingredient [auth] [Create ingredient view]
-app.post('/ingredient')
+app.post('/ingredient', (req, res) => {
+  session = req.session;
+  let errorCaught = null;
+  let ingredientId = null;
+  if (session.userid) {
+    model.getIngredientId()
+      .then(async response => {
+        ingredientId = response;
+        await model.createIngredient(ingredientId, req.body.name, req.body.kind)
+          .catch(error => {
+            errorCaught = error;
+          })
+      })
+      .catch(error => {
+        errorCaught = error;
+      })
+      .finally(() => {
+        if (errorCaught !== null) {
+          res.status(500).send(errorCaught);
+          console.log(model.getDateTime, 'POST: /ingredient', 500);
+        } else {
+          res.status(200).send({ message: "New ingredient created" });
+          console.log(model.getDateTime, 'POST: /ingredient', 200);
+        }
+      });
+  } else {
+    res.status(401).send({ message: "Please login first" });
+    console.log(model.getDateTime(), 'POST: /ingredient', 401);
+  }
+});
 
 // Get ingredients list by query [Query ingredients view]
 app.get('/ingredient')
 
 // Create Tag [auth] [Create tag view]
-app.post('/tag')
+app.post('/tag', (req, res) => {
+  session = req.session;
+  let errorCaught = null;
+  let tagId = null;
+  if (session.userid) {
+    model.getTagId()
+      .then(async response => {
+        tagId = response;
+        await model.createTag(tagId, req.body.name)
+          .catch(error => {
+            errorCaught = error;
+          })
+      })
+      .catch(error => {
+        errorCaught = error;
+      })
+      .finally(() => {
+        if (errorCaught !== null) {
+          res.status(500).send(errorCaught);
+          console.log(model.getDateTime, 'POST: /tag', 500);
+        } else {
+          res.status(200).send({ message: "New ingredient created" });
+          console.log(model.getDateTime, 'POST: /tag', 200);
+        }
+      });
+  } else {
+    res.status(401).send({ message: "Please login first" });
+    console.log(model.getDateTime(), 'POST: /tag', 401);
+  }
+});
 
 // Get tags list by query [Query tags view]
 app.get('/tag')

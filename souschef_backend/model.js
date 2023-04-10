@@ -11,33 +11,33 @@ const pool = new Pool({
 const beginQuery = () => {
   return new Promise((resolve, reject) => {
     pool.query('begin', (error, results) => {
-        if (error)
-          reject(error);
-        if (results)
-          resolve(results);
-      })
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results);
+    })
   })
 }
 
 const rollbackQuery = () => {
   return new Promise((resolve, reject) => {
     pool.query('rollback', (error, results) => {
-        if (error)
-          reject(error);
-        if (results)
-          resolve(results);
-      })
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results);
+    })
   })
 }
 
 const commitQuery = () => {
   return new Promise((resolve, reject) => {
     pool.query('commit', (error, results) => {
-        if (error)
-          reject(error);
-        if (results)
-          resolve(results);
-      })
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results);
+    })
   })
 }
 
@@ -203,14 +203,17 @@ const deleteShoppingListIngredient = (ingredientId, chefId) => {
       if (results)
         resolve(results.rows);
     })
+  })
+}
+
 const getIngredientId = () => {
   return new Promise((resolve, reject) => {
     pool.query('SELECT count(*) FROM Ingredients', (error, results) => {
-        if (error)
-          reject(error);
-        if (results)
-          resolve(parseInt(results.rows[0].count));
-      })
+      if (error)
+        reject(error);
+      if (results)
+        resolve(parseInt(results.rows[0].count));
+    })
   })
 }
 
@@ -229,11 +232,11 @@ const createIngredient = (ingredientId, name, kind) => {
 const getTagId = () => {
   return new Promise((resolve, reject) => {
     pool.query('SELECT count(*) FROM Tags', (error, results) => {
-        if (error)
-          reject(error);
-        if (results)
-          resolve(parseInt(results.rows[0].count));
-      })
+      if (error)
+        reject(error);
+      if (results)
+        resolve(parseInt(results.rows[0].count));
+    })
   })
 }
 
@@ -264,14 +267,11 @@ module.exports = {
   deleteSteps,
   createRequirement,
   getDateTime,
-<<<<<<< HEAD
   getShoppingList,
   createShoppingListIngredient,
-  deleteShoppingListIngredient
-=======
+  deleteShoppingListIngredient,
   getIngredientId,
   createIngredient,
   getTagId,
   createTag
->>>>>>> 5542bfe (Tags and ingredients creation added)
 }

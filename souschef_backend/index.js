@@ -140,7 +140,26 @@ app.get('/chef/:id', (req, res) => {
 });
 
 // Get Chefs list by query [Query chefs view]
-app.get('/chef')
+app.get('/chef', (req, res) => {
+  if (req.query.key === undefined)
+    req.query.key = "";
+  if (req.query.lim === undefined)
+    req.query.lim = '10';
+  if (parseInt(req.query.lim).toString() !== 'NaN') {
+    model.getChefByKey(req.query.key, parseInt(req.query.lim))
+      .then(response => {
+        res.status(200).send(response);
+        console.log(model.getDateTime(), 'GET: /chef', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'GET: /chef', 500);
+      });
+  } else {
+    res.status(400).send({ message: "Limit is NaN" });
+    console.log(model.getDateTime(), 'GET: /chef', 400);
+  }
+});
 
 // Create recipe [auth] [Add recipe view]
 app.post('/recipe', (req, res) => {
@@ -325,20 +344,20 @@ app.delete('/recipe/:id', (req, res) => {
 app.post('/recipe/shop/:id', (req, res) => {
   session = req.session;
   if (session.userid)
-  model.getRequirementsByRecipe(parseInt(req.params.id))
-  .then(async response =>
-    await Promise.all(response.map( async (ingredient) => {
-        await model.updateShoppingListIngredient(session.userid,parseInt(ingredient.ingredientid),parseInt(Number(ingredient.sum)))
-        .catch(error => {
-          errorCaught = error;
-        })
-      }
-    ))
-  )
-  .finally(() => {
-    res.status(200).send({ message: "Recipe added to shopping list" });
-    console.log(model.getDateTime(), 'POST: /recipe/shop/:id', 200);
-  });
+    model.getRequirementsByRecipe(parseInt(req.params.id))
+      .then(async response =>
+        await Promise.all(response.map(async (ingredient) => {
+          await model.updateShoppingListIngredient(session.userid, parseInt(ingredient.ingredientid), parseInt(Number(ingredient.sum)))
+            .catch(error => {
+              errorCaught = error;
+            })
+        }
+        ))
+      )
+      .finally(() => {
+        res.status(200).send({ message: "Recipe added to shopping list" });
+        console.log(model.getDateTime(), 'POST: /recipe/shop/:id', 200);
+      });
   else {
     res.status(401).send({ message: "Please login first" });
     console.log(model.getDateTime(), 'POST: /recipe/shop/:id', 401);
@@ -351,27 +370,27 @@ app.get('/recipe', (req, res) => {
   // console.log(req.query);
   let query_str = null;
   // Applying Tags filter
-  if(req.query !== undefined){
+  if (req.query !== undefined) {
     query_str = 'WITH all_recipes AS (SELECT * FROM Recipes)'
-    if(req.query.tags !== undefined){
+    if (req.query.tags !== undefined) {
       // let tag_list = req.query.tags.replaceall(' ', ',');
       let tag_list = req.query.tags.split(" ").join(", ");
       // let tag_list = req.query.tags.replaceAll(" ", ",");
-      query_str = query_str.concat(', ','given_tags AS (SELECT * FROM Tags WHERE tagid IN (',tag_list,'))');
-      query_str = query_str.concat(', ','tag_count AS (SELECT COUNT(*) AS count FROM given_tags)',);
-      query_str = query_str.concat(', ','recipes_with_tags AS (SELECT COUNT(tagged.recipeid) as count, tagged.recipeid AS recipeid FROM tagged JOIN given_tags ON tagged.tagid = given_tags.tagid GROUP BY tagged.recipeid)');
-      query_str = query_str.concat(', ','tagged_recipes AS (SELECT A.recipeid,A.title,A.serves,A.authorid,A.lastmodified,A.visibility from all_recipes AS A JOIN recipes_with_tags AS B ON A.recipeid = B.recipeid WHERE B.count = (SELECT count FROM tag_count))');
-    } else{
-      query_str = query_str.concat(', ','tagged_recipes AS (SELECT * FROM all_recipes)');
+      query_str = query_str.concat(', ', 'given_tags AS (SELECT * FROM Tags WHERE tagid IN (', tag_list, '))');
+      query_str = query_str.concat(', ', 'tag_count AS (SELECT COUNT(*) AS count FROM given_tags)',);
+      query_str = query_str.concat(', ', 'recipes_with_tags AS (SELECT COUNT(tagged.recipeid) as count, tagged.recipeid AS recipeid FROM tagged JOIN given_tags ON tagged.tagid = given_tags.tagid GROUP BY tagged.recipeid)');
+      query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT A.recipeid,A.title,A.serves,A.authorid,A.lastmodified,A.visibility from all_recipes AS A JOIN recipes_with_tags AS B ON A.recipeid = B.recipeid WHERE B.count = (SELECT count FROM tag_count))');
+    } else {
+      query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT * FROM all_recipes)');
     }
     // Applying Author filter
-    if(req.query.author !== undefined){
+    if (req.query.author !== undefined) {
       let filter_author = req.query.author;
-      query_str = query_str.concat(', ',"filtered_recipes AS (SELECT * FROM tagged_recipes WHERE authorid = '",filter_author,"')");
-    }else{
-      query_str = query_str.concat(', ','filtered_recipes AS (SELECT * FROM tagged_recipes)');
+      query_str = query_str.concat(', ', "filtered_recipes AS (SELECT * FROM tagged_recipes WHERE authorid = '", filter_author, "')");
+    } else {
+      query_str = query_str.concat(', ', 'filtered_recipes AS (SELECT * FROM tagged_recipes)');
     }
-    query_str = query_str.concat(' ','SELECT * FROM filtered_recipes');
+    query_str = query_str.concat(' ', 'SELECT * FROM filtered_recipes');
   } else {
     query_str = 'SELECT recipeid, title, serves, authorid FROM Recipes';
   }
@@ -409,10 +428,10 @@ app.post('/ingredient', (req, res) => {
       .finally(() => {
         if (errorCaught !== null) {
           res.status(500).send(errorCaught);
-          console.log(model.getDateTime, 'POST: /ingredient', 500);
+          console.log(model.getDateTime(), 'POST: /ingredient', 500);
         } else {
           res.status(200).send({ message: "New ingredient created" });
-          console.log(model.getDateTime, 'POST: /ingredient', 200);
+          console.log(model.getDateTime(), 'POST: /ingredient', 200);
         }
       });
   } else {
@@ -422,7 +441,26 @@ app.post('/ingredient', (req, res) => {
 });
 
 // Get ingredients list by query [Query ingredients view]
-app.get('/ingredient')
+app.get('/ingredient', (req, res) => {
+  if (req.query.key === undefined)
+    req.query.key = "";
+  if (req.query.lim === undefined)
+    req.query.lim = '10';
+  if (parseInt(req.query.lim).toString() !== 'NaN') {
+    model.getIngredientByKey(req.query.key, parseInt(req.query.lim))
+      .then(response => {
+        res.status(200).send(response);
+        console.log(model.getDateTime(), 'GET: /ingredient', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'GET: /ingredient', 500);
+      });
+  } else {
+    res.status(400).send({ message: "Limit is NaN" });
+    console.log(model.getDateTime(), 'GET: /ingredient', 400);
+  }
+});
 
 // Create Tag [auth] [Create tag view]
 app.post('/tag', (req, res) => {
@@ -444,10 +482,10 @@ app.post('/tag', (req, res) => {
       .finally(() => {
         if (errorCaught !== null) {
           res.status(500).send(errorCaught);
-          console.log(model.getDateTime, 'POST: /tag', 500);
+          console.log(model.getDateTime(), 'POST: /tag', 500);
         } else {
           res.status(200).send({ message: "New tag created" });
-          console.log(model.getDateTime, 'POST: /tag', 200);
+          console.log(model.getDateTime(), 'POST: /tag', 200);
         }
       });
   } else {
@@ -457,12 +495,31 @@ app.post('/tag', (req, res) => {
 });
 
 // Get tags list by query [Query tags view]
-app.get('/tag')
+app.get('/tag', (req, res) => {
+  if (req.query.key === undefined)
+    req.query.key = "";
+  if (req.query.lim === undefined)
+    req.query.lim = '10';
+  if (parseInt(req.query.lim).toString() !== 'NaN') {
+    model.getTagByKey(req.query.key, parseInt(req.query.lim))
+      .then(response => {
+        res.status(200).send(response);
+        console.log(model.getDateTime(), 'GET: /tag', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'GET: /tag', 500);
+      });
+  } else {
+    res.status(400).send({ message: "Limit is NaN" });
+    console.log(model.getDateTime(), 'GET: /tag', 400);
+  }
+})
 
 // Create a bookmark [auth] [Bookmark button]
 app.post('/bookmark/:id', (req, res) => {
   session = req.session;
-  if (session.userid){
+  if (session.userid) {
     model.createBookmark(session.userid, parseInt(req.params.id))
       .then(response => {
         res.status(200).send({ message: "Recipe bookmarked" });
@@ -481,7 +538,7 @@ app.post('/bookmark/:id', (req, res) => {
 // Remove bookmark [auth] [Remove Bookmark button]
 app.delete('/bookmark/:id', (req, res) => {
   session = req.session;
-  if (session.userid){
+  if (session.userid) {
     model.removeBookmark(session.userid, parseInt(req.params.id))
       .then(response => {
         res.status(200).send({ message: "Recipe removed from Bookmarks" });
@@ -500,7 +557,7 @@ app.delete('/bookmark/:id', (req, res) => {
 // Rate a recipe (New or Update) [auth] [Rate recipe button]
 app.post('/rating/:id', (req, res) => {
   session = req.session;
-  if (session.userid){
+  if (session.userid) {
     model.rateRecipe(session.userid, parseInt(req.params.id), req.body.rating)
       .then(response => {
         res.status(200).send({ message: "Recipe rated" });
@@ -519,7 +576,7 @@ app.post('/rating/:id', (req, res) => {
 // Unrate a recipe [auth] [Unrate recipe button]
 app.delete('/rating/:id', (req, res) => {
   session = req.session;
-  if (session.userid){
+  if (session.userid) {
     model.unrateRecipe(session.userid, parseInt(req.params.id))
       .then(response => {
         res.status(200).send({ message: "Recipe unrated" });
@@ -538,17 +595,17 @@ app.delete('/rating/:id', (req, res) => {
 // Get user shopping list by id [auth] [Shopping List View]
 app.get('/shoppinglist', (req, res) => {
   session = req.session;
-  if(session.userid)
-      model.getShoppingList(parseInt(session.userid))
-        .then(response => {
-            res.status(200).send(response);
-            console.log(model.getDateTime(), 'GET: /shoppinglist', 200);
-        })
-        .catch(error => {
-          res.status(500).send(error);
-          console.log(model.getDateTime(), 'GET: /shoppinglist', 500);
-        });
-  else{
+  if (session.userid)
+    model.getShoppingList(parseInt(session.userid))
+      .then(response => {
+        res.status(200).send(response);
+        console.log(model.getDateTime(), 'GET: /shoppinglist', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'GET: /shoppinglist', 500);
+      });
+  else {
     res.status(403).send({ message: "Unauthorized access" });
     console.log(model.getDateTime(), 'GET: /shoppinglist', 403);
   }
@@ -558,28 +615,28 @@ app.get('/shoppinglist', (req, res) => {
 app.post('/shoppinglist/:id', (req, res) => {
   session = req.session;
   let errorCaught = null;
-  if(session.userid)
+  if (session.userid)
     model.deleteShoppingListIngredient(parseInt(req.params.id), session.userid)
-    .then(async deleteResponse => {
-      await model.createShoppingListIngredient(parseInt(req.params.id), session.userid, parseInt(req.body.quantity))
-      .then(async createResponse => {
-        res.status(200).send({ message: "New ingredient added in shopping list" });
-        console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 200);
+      .then(async deleteResponse => {
+        await model.createShoppingListIngredient(parseInt(req.params.id), session.userid, parseInt(req.body.quantity))
+          .then(async createResponse => {
+            res.status(200).send({ message: "New ingredient added in shopping list" });
+            console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 200);
+          })
+          .catch(error => {
+            errorCaught = error;
+          });
       })
       .catch(error => {
         errorCaught = error;
+      })
+      .finally(() => {
+        if (errorCaught !== null) {
+          res.status(500).send(errorCaught);
+          console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 500);
+        }
       });
-    })
-    .catch(error => {
-      errorCaught = error;
-    })
-    .finally(() => {
-      if (errorCaught !== null) {
-        res.status(500).send(errorCaught);
-        console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 500);
-      }
-    });
-  else{
+  else {
     res.status(403).send({ message: "Unauthorized access" });
     console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 403);
   }
@@ -588,7 +645,7 @@ app.post('/shoppinglist/:id', (req, res) => {
 // Delete ingredient in shopping list by id [auth] [Delete ingredient from shopping list view]
 app.delete('/shoppinglist/:id', (req, res) => {
   session = req.session;
-  if(session.userid)
+  if (session.userid)
     model.deleteShoppingListIngredient(parseInt(req.params.id), session.userid, parseInt(req.body.quantity))
       .then(response => {
         res.status(200).send({ message: "Ingredient deleted" });
@@ -598,7 +655,7 @@ app.delete('/shoppinglist/:id', (req, res) => {
         res.status(500).send(error);
         console.log(model.getDateTime(), 'DELETE: /shoppinglist/:id', 500);
       });
-  else{
+  else {
     res.status(403).send({ message: "Unauthorized access" });
     console.log(model.getDateTime(), 'DELETE: /shoppinglist/:id', 403);
   }

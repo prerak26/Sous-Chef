@@ -325,7 +325,7 @@ const getTagId = () => {
 
 const createTag = (tagId, name) => {
   return new Promise((resolve, reject) => {
-    pool.query('INSERT INTO Tags (ingredientId, name) VALUES ($1, $2)',
+    pool.query('INSERT INTO Tags (tagId, name) VALUES ($1, $2)',
       [tagId, name], (error, results) => {
         if (error)
           reject(error);

@@ -4,7 +4,7 @@
 </head>
 
 <body>
-    <form action="/recipe" method="post">
+    <form action="/tag" method="post">
         <h2>Check POST request</h2>
         <div class="input-field">
             <input type="text" name="req" id="req" placeholder="Enter POST request body">
@@ -17,9 +17,9 @@
             const data = new FormData(event.target);
             let value = Object.fromEntries(data.entries());
             value.req = JSON.parse(value.req);
-            console.log(value);
+            console.log(value.req);
 
-            fetch('/recipe', {
+            fetch('/tag', {
                 method: 'POST',
                 headers: {
                     accept: 'application.json',

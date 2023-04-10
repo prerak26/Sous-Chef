@@ -1,0 +1,6 @@
+{
+    "title": "fas",
+    "serves": 10,
+    "isPublic": false,
+    "steps": [{ "duration": 10, "desc": "add", "ingredients": [] }]
+}

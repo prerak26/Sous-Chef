@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/myrecipieholder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:requests/requests.dart';
 //import 'package:shared_preferences_web/shared_preferences_web.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     
-    _loadCredentials();
+    //_loadCredentials();
   }
 
   void _loadCredentials() async {
@@ -53,6 +54,9 @@ class _LoginPageState extends State<LoginPage> {
       'id':_usernameController.text,
       'pswd':_passwordController.text,
     });
+
+    
+
     if(response.statusCode == 200){
 
       session.isLogged = true;
@@ -60,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
       session.pswd = _passwordController.text;
       if(_rememberMe == true){
         
-        _saveCredentials();
+        //_saveCredentials();
       }
       
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => const placePage()));

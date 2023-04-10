@@ -18,7 +18,7 @@ class _placePageState extends State<placePage> {
   @override
   Widget build(BuildContext context) {
     if(session.isLogged){
-      return UserHomePage();
+      return const UserHomePage();
     }
     return Scaffold(
       body: Center(

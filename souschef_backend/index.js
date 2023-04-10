@@ -150,6 +150,7 @@ app.post('/recipe', (req, res) => {
   if (session.userid)
     model.getRecipeId()
       .then(async response => {
+        console.log(req.body);
         recipeId = response;
         await model.createRecipe(recipeId, req.body.title, parseInt(req.body.serves),
           (req.body.isPublic ? 'public' : 'private'), session.userid)

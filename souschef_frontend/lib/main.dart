@@ -23,18 +23,22 @@ class Globals{
 Globals session = Globals(isLogged:false,id:"",pswd:"");
 
 class Session {
-  Map<String, String> headers = {};
-
+  Map<String, String> headers;
+  Session({required this.headers});
   Future<http.Response> get(String url) async {
     http.Response response = await http.get(Uri.parse(url), headers: headers);
+    //print(headers);
     updateCookie(response);
     return response;
   }
 
   Future<http.Response> post(String url, dynamic data) async {
+    //print(headers);
+    print(data);
     http.Response response =
         await http.post(Uri.parse(url), body: data, headers: headers);
     updateCookie(response);
+    print(headers);
     //print()
     
     return response;
@@ -44,13 +48,13 @@ class Session {
     String? rawCookie = response.headers['set-cookie'];
     if (rawCookie != null) {
       int index = rawCookie.indexOf(';');
-      headers['secret'] =
+      headers['cookie'] =
           (index == -1) ? rawCookie : rawCookie.substring(0, index);
     }
   }
 }
 
-Session curr_session = Session();
+Session curr_session = Session(headers: {});
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
   

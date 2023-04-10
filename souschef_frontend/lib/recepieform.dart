@@ -1,19 +1,49 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:souschef_frontend/main.dart';
 //import 'package:my_recipe_app/models/recipe.dart';
 
+class Ingredient{
+  String id;
+  String quantity;
+  Ingredient({required this.id,required this.quantity});
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'quantity': quantity,
+      };
+}
+
+class Step{
+  int duration;
+  String desc;
+  List<Ingredient> ingredients = [];
+  Step({required this.duration,required this.desc,required this.ingredients});
+   Map<String, dynamic> toJson() => {
+        'duration': duration,
+        'desc': desc,
+        'ingredients': ingredients.map((ingredient) => ingredient.toJson()).toList(),
+      };
+}
+
 class Recipe{
-  String? name;
+  String? title;
   int? serves;
   bool isPublic = false;
-  List<String> ingredients = [];
-  List<String> instructions = [];
-  //Recipe(String? _name,List<String>_ingredients,List<String>_instructions){
-  //  name = _name;
-  //  ingredients = _ingredients;
-  //  instructions = _instructions;
-  //}
+  //List<String> ingredients = [];
+  List<Step> steps = [];
+  Recipe({this.title, this.serves, required this.isPublic,required this.steps});
+   Map<String, dynamic> toJson() => {
+        'title': title,
+        'serves': serves,
+        'isPublic': isPublic,
+        'steps': steps.map((step) => step.toJson()).toList(),
+      };
 }
+
+
 
 class RecipeForm extends StatefulWidget {
   @override
@@ -24,20 +54,34 @@ class _RecipeFormState extends State<RecipeForm> {
   final _formKey = GlobalKey<FormState>();
 
   String? _name;
-  String? _imageUrl;
-  List<String> _ingredients = [];
-  List<String> _instructions = [];
-  String? temp;
-  void _saveRecipe() {
+  int? _serves;
+  //List<String> _ingredients = [];
+  List<Step> _instructions = [];
+  bool _isPublic = true;
+  //String? temp;
+  final _nameController = TextEditingController();
+  final _servesController = TextEditingController();
+  final _instcontroller = TextEditingController();
+  final _durationcontroller = TextEditingController();
+  void _saveRecipe() async {
     if (_formKey.currentState!.validate()) {
-      final recipe = Recipe(
-        //_name!,
-        //imageUrl: _imageUrl!,
-        //_ingredients,
-        //_instructions,
+      var recipe =  Recipe(
+        isPublic:_isPublic,
+        title:_name,
+        serves: _serves,
+        steps: _instructions,
       );
+
+      //print(jsonEncode(recipe.toJson()));
+      var response = await curr_session.post('http://localhost:3001/recipe', jsonEncode(recipe.toJson()));
+      if(response.statusCode == 200){
+         //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          //content: Text('Recipie Created'),
+          //));
+       Navigator.pop(context);
+      }
       // Save the recipe data to your app's data store here
-      Navigator.pop(context);
+      
     }
   }
 
@@ -54,6 +98,7 @@ class _RecipeFormState extends State<RecipeForm> {
           child: ListView(
             children: [
               TextFormField(
+                controller: _nameController,
                 decoration: InputDecoration(labelText: 'Recipe Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -67,189 +112,135 @@ class _RecipeFormState extends State<RecipeForm> {
               ),
               SizedBox(height: 16),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Image URL'),
+                controller: _servesController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Serves'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter an image URL for the recipe';
+                    return 'Please enter number of people the dish serves';
                   }
                   return null;
                 },
                 onSaved: (value) {
-                  _imageUrl = value!;
+                  _serves = int.parse(_servesController.text);
                 },
               ),
               SizedBox(height: 16),
               Text(
-                'Ingredients',
-                style: Theme.of(context).textTheme.titleLarge,
+                'Instructions',
+                style: Theme.of(context).textTheme.headline6,
               ),
               SizedBox(height: 8),
               ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: _ingredients.length + 1,
-                itemBuilder: (BuildContext context, int index) {
-                  if (index == _ingredients.length) {
-                    return ListTile(
-                      title: Text('Add Ingredient'),
-                      leading: Icon(Icons.add),
-                      onTap: () async {
-                        final ingredient = await showDialog<String>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return SimpleDialog(
-                              title: Text('Add Ingredient'),
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  child: TextFormField(
-                                    autofocus: true,
-                                    decoration: InputDecoration(
-                                        labelText: 'Ingredient'),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        
-                                        return 'Please enter an ingredient';
-                                      }
-                                      //else{temp = value;}
-                                      return value;
-                                    },
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    TextButton(
-                                      child: Text('Cancel'),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                    TextButton(
-                                      child: Text('Add'),
-                                      onPressed: () {
-                                        final form =
-                                            _formKey.currentState!;
-                                        if (form.validate()) {
-                                          form.save();
-                                          _ingredients.add("");
-                                          Navigator.pop(context);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: _instructions.length + 1,
+              itemBuilder: (BuildContext context, int index) {
+              if (index == _instructions.length) {
+              return ListTile(
+                title: Text('Add Instruction'),
+                leading: Icon(Icons.add),
+                onTap: () async {
+                  final instruction = await showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) {
+                    return SimpleDialog(
+                      title: Text('Add Instruction'),
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8
+                          ),
+                          child:Column( 
+                            children:[
+                              TextFormField(
+                              controller: _instcontroller,
+                              autofocus: true,
+                              decoration: InputDecoration(
+                                labelText: 'Instruction'
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter an instruction';
+                                }
+                              //else {temp = value;}
+                                return null;
+                              },
+                            ),
+                            TextFormField(
+                              controller: _durationcontroller,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: <TextInputFormatter>[
+                                FilteringTextInputFormatter.digitsOnly
                               ],
-                            );
-                          },
-                        );
-                      },
+                              autofocus: true,
+                              decoration: InputDecoration(
+                                labelText: 'Duration'
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter duration';
+                                }
+                              //else {temp = value;}
+                                return null;
+                              },
+                            ),    
+                          ])
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              child: Text('Cancel'),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Add'),
+                              onPressed: () {
+                                final form =_formKey.currentState!;
+                                if (form.validate()) {
+                                  form.save();
+                                  Step S = Step(duration: int.parse(_durationcontroller.text),desc: _instcontroller.text,ingredients: []);
+                                  _instructions.add(S);
+                                  _instcontroller.text = "";
+                                  Navigator.pop(context);
+                                }
+                              },  
+                            ),
+                          ],
+                        ),
+                      ],
                     );
-                  } else {
-                    return ListTile(
-                      title: Text(_ingredients[index]),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-setState(() {
-_ingredients.removeAt(index);
-});
-},
-),
-);
-}
-},
-),
-SizedBox(height: 16),
-Text(
-'Instructions',
-style: Theme.of(context).textTheme.headline6,
-),
-SizedBox(height: 8),
-ListView.builder(
-shrinkWrap: true,
-physics: NeverScrollableScrollPhysics(),
-itemCount: _instructions.length + 1,
-itemBuilder: (BuildContext context, int index) {
-if (index == _instructions.length) {
-return ListTile(
-title: Text('Add Instruction'),
-leading: Icon(Icons.add),
-onTap: () async {
-final instruction = await showDialog<String>(
-context: context,
-builder: (BuildContext context) {
-return SimpleDialog(
-title: Text('Add Instruction'),
-children: [
-Padding(
-padding: EdgeInsets.symmetric(
-horizontal: 16, vertical: 8),
-child: TextFormField(
-autofocus: true,
-decoration: InputDecoration(
-labelText: 'Instruction'),
-validator: (value) {
-if (value == null || value.isEmpty) {
-return 'Please enter an instruction';
-}
-else {temp = value;}
-return null;
-},
-),
-),
-Row(
-mainAxisAlignment: MainAxisAlignment.end,
-children: [
-TextButton(
-child: Text('Cancel'),
-onPressed: () {
-Navigator.pop(context);
-},
-),
-TextButton(
-child: Text('Add'),
-onPressed: () {
-final form =
-_formKey.currentState!;
-if (form.validate()) {
-form.save();
-_instructions.add(temp!);
-Navigator.pop(context);
-}
-},
-),
-],
-),
-],
-);
-},
-);
-},
-);
-} else {
-return ListTile(
-title: Text(_instructions[index]),
-trailing: IconButton(
-icon: Icon(Icons.delete),
-onPressed: () {
-setState(() {
-_instructions.removeAt(index);
-});
-},
-),
-);
-}
-},
-),
-SizedBox(height: 16),
-ElevatedButton(
-onPressed: _saveRecipe,
-child: Text('Save Recipe'),
-),
-],
-),
+                  },
+                );
+              },
+            );
+          } 
+          else {
+            return ListTile(
+              title: Text(_instructions[index].desc),
+              trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  _instructions.removeAt(index);
+                }
+              );},
+              ),
+            );
+          }
+        },
+      ),
+      SizedBox(height: 16),
+      ElevatedButton(
+        onPressed: _saveRecipe,
+        child: Text('Save Recipe'),
+      ),
+    ],
+  ),
 ),
 ),
 );

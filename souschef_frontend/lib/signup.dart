@@ -28,13 +28,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
       'pswd': _passwordController.text,
     });
 
-    //var url = Uri.parse('http://localhost:3001/signup');
-    //var response = await http.post(url, body: {
-    //  'name': _nameController.text,
-    //  'id': _idController.text,
-    //  'pswd': _passwordController.text,
-    //});
-    //print(response);
+  
 
   void _saveCredentials() async {
     //SharedPreferences.setMockInitialValues({});

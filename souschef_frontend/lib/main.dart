@@ -51,7 +51,10 @@ class Session {
       headers['cookie'] =
           (index == -1) ? rawCookie : rawCookie.substring(0, index);
     }
+    headers['Content-Type'] =  'application/json'; 
+    headers['charset']='UTF-8';
   }
+  
 }
 
 Session curr_session = Session(headers: {});

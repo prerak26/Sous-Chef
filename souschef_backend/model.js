@@ -74,6 +74,18 @@ const getRecipe = (id) => {
   })
 }
 
+const getRecipes = (query_str) => {
+  const QUERYSTR = query_str;
+  return new Promise((resolve, reject) => {
+    pool.query(QUERYSTR, [], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
 const getRecipeId = () => {
   return new Promise((resolve, reject) => {
     // pool.query('SELECT count(*) FROM Recipes', (error, results) => {
@@ -159,6 +171,63 @@ const createRequirement = (recipeId, stepNumber, serialNumber, ingredientId, qua
   return new Promise((resolve, reject) => {
     pool.query('INSERT INTO Requirements (recipeId, stepNumber, serialNumber, ingredientId, quantity) VALUES ($1, $2, $3, $4, $5)',
       [recipeId, stepNumber, serialNumber, ingredientId, quantity], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const createBookmark = (chefid, recipeId) => {
+  const CHEFID = chefid;
+  const RECIPEID = recipeId;
+  return new Promise((resolve, reject) => {
+    pool.query('INSERT INTO Bookmarks (chefid, recipeid) VALUES ($1, $2)',
+      [CHEFID,RECIPEID], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const removeBookmark = (chefid, recipeId) => {
+  const CHEFID = chefid;
+  const RECIPEID = recipeId;
+  return new Promise((resolve, reject) => {
+    pool.query('DELETE FROM Bookmarks WHERE chefid = $1 AND recipeid = $2',
+      [CHEFID,RECIPEID], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const rateRecipe = (chefid, recipeId, rating) => {
+  const CHEFID = chefid;
+  const RECIPEID = recipeId;
+  const RATING = rating;
+  const LASTMODIFIED = getDateTime();
+  return new Promise((resolve, reject) => {
+    pool.query('INSERT INTO Ratings (chefid, recipeid, rating, lastmodified) VALUES ($1, $2, $3, $4) ON CONFLICT (chefid, recipeid) DO UPDATE SET rating = $3, lastmodified = $4',
+      [CHEFID,RECIPEID,RATING,LASTMODIFIED], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+const unrateRecipe = (chefid, recipeId) => {
+  const CHEFID = chefid;
+  const RECIPEID = recipeId;
+  return new Promise((resolve, reject) => {
+    pool.query('DELETE FROM Ratings WHERE chefid = $1 AND recipeid = $2',
+      [CHEFID,RECIPEID], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -285,6 +354,7 @@ module.exports = {
   getChef,
   createChef,
   getRecipe,
+  getRecipes,
   getRecipeId,
   createRecipe,
   updateRecipe,
@@ -294,6 +364,10 @@ module.exports = {
   createRequirement,
   getDateTime,
   getShoppingList,
+  createBookmark,
+  removeBookmark,
+  rateRecipe,
+  unrateRecipe,
   createShoppingListIngredient,
   updateShoppingListIngredient,
   deleteShoppingListIngredient,

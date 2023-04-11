@@ -346,7 +346,48 @@ app.post('/recipe/shop/:id', (req, res) => {
 });
 
 // Get recipes list [Discover View]
-app.get('/recipe')
+app.get('/recipe', (req, res) => {
+  session = req.session;
+  // console.log(req.query);
+  let query_str = null;
+  // Applying Tags filter
+  if(req.query !== undefined){
+    query_str = 'WITH all_recipes AS (SELECT * FROM Recipes)'
+    if(req.query.tags !== undefined){
+      // let tag_list = req.query.tags.replaceall(' ', ',');
+      let tag_list = req.query.tags.split(" ").join(", ");
+      // let tag_list = req.query.tags.replaceAll(" ", ",");
+      query_str = query_str.concat(', ','given_tags AS (SELECT * FROM Tags WHERE tagid IN (',tag_list,'))');
+      query_str = query_str.concat(', ','tag_count AS (SELECT COUNT(*) AS count FROM given_tags)',);
+      query_str = query_str.concat(', ','recipes_with_tags AS (SELECT COUNT(tagged.recipeid) as count, tagged.recipeid AS recipeid FROM tagged JOIN given_tags ON tagged.tagid = given_tags.tagid GROUP BY tagged.recipeid)');
+      query_str = query_str.concat(', ','tagged_recipes AS (SELECT A.recipeid,A.title,A.serves,A.authorid,A.lastmodified,A.visibility from all_recipes AS A JOIN recipes_with_tags AS B ON A.recipeid = B.recipeid WHERE B.count = (SELECT count FROM tag_count))');
+    } else{
+      query_str = query_str.concat(', ','tagged_recipes AS (SELECT * FROM all_recipes)');
+    }
+    // Applying Author filter
+    if(req.query.author !== undefined){
+      let filter_author = req.query.author;
+      query_str = query_str.concat(', ',"filtered_recipes AS (SELECT * FROM tagged_recipes WHERE authorid = '",filter_author,"')");
+    }else{
+      query_str = query_str.concat(', ','filtered_recipes AS (SELECT * FROM tagged_recipes)');
+    }
+    query_str = query_str.concat(' ','SELECT * FROM filtered_recipes');
+  } else {
+    query_str = 'SELECT recipeid, title, serves, authorid FROM Recipes';
+  }
+  model.getRecipes(query_str)
+    .then(async response => {
+      await response.filter(async (recipe) => {
+        return (recipe.visibility === 'public' || (recipe.visibility === 'private' && session.userid === recipe.authorid));
+      });
+      res.status(200).send(response);
+      console.log(model.getDateTime(), 'GET: /recipe', 200);
+    })
+    .catch(error => {
+      res.status(500).send(error);
+      console.log(model.getDateTime(), 'GET: /recipe', 500);
+    });
+});
 
 // Create ingredient [auth] [Create ingredient view]
 app.post('/ingredient', (req, res) => {
@@ -405,7 +446,7 @@ app.post('/tag', (req, res) => {
           res.status(500).send(errorCaught);
           console.log(model.getDateTime, 'POST: /tag', 500);
         } else {
-          res.status(200).send({ message: "New ingredient created" });
+          res.status(200).send({ message: "New tag created" });
           console.log(model.getDateTime, 'POST: /tag', 200);
         }
       });
@@ -418,8 +459,83 @@ app.post('/tag', (req, res) => {
 // Get tags list by query [Query tags view]
 app.get('/tag')
 
+// Create a bookmark [auth] [Bookmark button]
+app.post('/bookmark/:id', (req, res) => {
+  session = req.session;
+  if (session.userid){
+    model.createBookmark(session.userid, parseInt(req.params.id))
+      .then(response => {
+        res.status(200).send({ message: "Recipe bookmarked" });
+        console.log(model.getDateTime(), 'POST: /bookmark/:id', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'POST: /bookmark/:id', 500);
+      })
+  } else {
+    res.status(401).send({ message: "Please login first" });
+    console.log(model.getDateTime(), 'GET: /bookmark/:id', 401);
+  }
+});
+
+// Remove bookmark [auth] [Remove Bookmark button]
+app.delete('/bookmark/:id', (req, res) => {
+  session = req.session;
+  if (session.userid){
+    model.removeBookmark(session.userid, parseInt(req.params.id))
+      .then(response => {
+        res.status(200).send({ message: "Recipe removed from Bookmarks" });
+        console.log(model.getDateTime(), 'POST: /bookmark/:id', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'POST: /bookmark/:id', 500);
+      })
+  } else {
+    res.status(401).send({ message: "Please login first" });
+    console.log(model.getDateTime(), 'GET: /bookmark/:id', 401);
+  }
+});
+
+// Rate a recipe (New or Update) [auth] [Rate recipe button]
+app.post('/rating/:id', (req, res) => {
+  session = req.session;
+  if (session.userid){
+    model.rateRecipe(session.userid, parseInt(req.params.id), req.body.rating)
+      .then(response => {
+        res.status(200).send({ message: "Recipe rated" });
+        console.log(model.getDateTime(), 'POST: /rating/:id', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'POST: /rating/:id', 500);
+      })
+  } else {
+    res.status(401).send({ message: "Please login first" });
+    console.log(model.getDateTime(), 'GET: /rating/:id', 401);
+  }
+});
+
+// Unrate a recipe [auth] [Unrate recipe button]
+app.delete('/rating/:id', (req, res) => {
+  session = req.session;
+  if (session.userid){
+    model.unrateRecipe(session.userid, parseInt(req.params.id))
+      .then(response => {
+        res.status(200).send({ message: "Recipe unrated" });
+        console.log(model.getDateTime(), 'POST: /rating/:id', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'POST: /rating/:id', 500);
+      })
+  } else {
+    res.status(401).send({ message: "Please login first" });
+    console.log(model.getDateTime(), 'GET: /rating/:id', 401);
+  }
+});
+
 // Get user shopping list by id [auth] [Shopping List View]
-// app.get('/shoppinglist')
 app.get('/shoppinglist', (req, res) => {
   session = req.session;
   if(session.userid)

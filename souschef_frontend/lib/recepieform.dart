@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:souschef_frontend/main.dart';
+import 'package:http/http.dart' as http;
 //import 'package:my_recipe_app/models/recipe.dart';
 
 class Ingredient{
@@ -34,12 +35,14 @@ class Recipe{
   bool isPublic = false;
   //List<String> ingredients = [];
   List<Step> steps = [];
+  List<int>tags = [];
   Recipe({required this.title, required this.serves, required this.isPublic,required this.steps});
    Map<String, dynamic> toJson() => {
         'title': title,
         'serves': serves,
         'isPublic': isPublic,
         'steps': steps.map((step) => step.toJson()).toList(),
+
       };
 }
 
@@ -57,12 +60,34 @@ class _RecipeFormState extends State<RecipeForm> {
   //int _serves;
   //List<String> _ingredients = [];
   List<Step> _instructions = [];
-  bool _isPublic = true;
+  bool _isPublic = false;
   //String? temp;
   final _nameController = TextEditingController();
   final _servesController = TextEditingController();
   final _instcontroller = TextEditingController();
   final _durationcontroller = TextEditingController();
+  
+  List<String> _suggestions = [];
+
+  void _getSuggestions(String text) async {
+    if (text.contains("@")) {
+      // Replace this with your API call to get the suggestions.
+      //String apiUrl = "https://example.com/suggestions?query=$text";
+      var response = await curr_session.get('https://example.com/suggestions?query=$text');
+      List<dynamic> suggestionsJson = json.decode(response.body);
+      List<String> suggestions = suggestionsJson.cast<String>().toList();
+
+      setState(() {
+        _suggestions = suggestions;
+      });
+    } else {
+      setState(() {
+        _suggestions = [];
+      });
+    }
+  }
+
+  
   Recipe recipe = Recipe(title:"",serves: 0,isPublic: true, steps: []);
   void _saveRecipe() async {
 
@@ -128,7 +153,22 @@ class _RecipeFormState extends State<RecipeForm> {
                   //_serves = int.parse(_servesController.text);
                 },
               ),
+
               SizedBox(height: 16),
+              Row(
+              children: [
+                Checkbox(
+                  value: _isPublic,
+                  onChanged: (value) {
+                    setState(() {
+                      _isPublic = value!;
+                    });
+                  },
+                ),
+                const Text("Make public"),
+              ],
+            ),
+            SizedBox(height: 16),
               Text(
                 'Instructions',
                 style: Theme.of(context).textTheme.headline6,
@@ -156,21 +196,45 @@ class _RecipeFormState extends State<RecipeForm> {
                             vertical: 8
                           ),
                           child:Column( 
-                            children:[
-                              TextFormField(
-                              controller: _instcontroller,
-                              autofocus: true,
-                              decoration: InputDecoration(
-                                labelText: 'Instruction'
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter an instruction';
-                                }
-                              //else {temp = value;}
-                                return null;
-                              },
-                            ),
+                            children: [
+                              Column(
+                                children:[
+                                  TextFormField(
+                                    controller: _instcontroller,
+                                    onChanged: (text) => _getSuggestions(text),
+                                    autofocus: true,
+                                    decoration: InputDecoration(
+                                    labelText: 'Instruction'
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter an instruction';
+                                    }
+                                  
+                                    return null;
+                                  },
+                                ),
+                                _suggestions.isNotEmpty
+                                ? Container(
+                                    height: 200,
+                                    child: ListView.builder(
+                                      itemCount: _suggestions.length,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        return ListTile(
+                                          title: Text(_suggestions[index]),
+                                          onTap: () {
+                                            setState(() {
+                                              _instcontroller.text += _suggestions[index];
+                                              _suggestions = [];
+                                            });
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : Container(),
+                                ]
+                                ),
                             TextFormField(
                               controller: _durationcontroller,
                               keyboardType: TextInputType.number,

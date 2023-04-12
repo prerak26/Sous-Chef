@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:souschef_frontend/autocomplete.dart';
@@ -63,10 +62,7 @@ class _UserHomePageState extends State<UserHomePage> {
   //gethomeinfo();
   @override
   Widget build(BuildContext context) {
-    gethomeinfo();
     
-    //var chefId = body["chefId"] as String;
-    //var name = body["name"] as String;
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Recipies'),

@@ -33,7 +33,8 @@ class Session {
   }
 
   Future<http.Response> post(String url, dynamic data) async {
-    
+    headers['Content-Type'] =  'application/json'; 
+    headers['charset']='UTF-8';
     
     http.Response response =
         await http.post(Uri.parse(url), body: data, headers: headers);
@@ -51,8 +52,7 @@ class Session {
       headers['cookie'] =
           (index == -1) ? rawCookie : rawCookie.substring(0, index);
     }
-    headers['Content-Type'] =  'application/json'; 
-    headers['charset']='UTF-8';
+    
   }
   
 }

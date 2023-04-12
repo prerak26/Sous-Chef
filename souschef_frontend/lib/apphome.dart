@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: PersistentTabView(
         context,
       controller: _controller,
-  screens:const [
+  screens: const [
     
     placePage(),
     DiscoverPage(),

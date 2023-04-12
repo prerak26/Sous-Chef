@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:souschef_frontend/main.dart';
@@ -24,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     
-    //_loadCredentials();
+    _loadCredentials();
   }
 
   void _loadCredentials() async {
@@ -50,10 +52,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() async{
     
-    var response = await curr_session.post('http://localhost:3001/login', {
+    var response = await curr_session.post('http://localhost:3001/login', json.encode({
       'id':_usernameController.text,
       'pswd':_passwordController.text,
-    });
+    }));
 
     
 
@@ -64,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
       session.pswd = _passwordController.text;
       if(_rememberMe == true){
         
-        //_saveCredentials();
+        _saveCredentials();
       }
       
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => const placePage()));

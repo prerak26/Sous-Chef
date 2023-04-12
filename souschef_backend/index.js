@@ -368,32 +368,60 @@ app.post('/recipe/shop/:id', (req, res) => {
 app.get('/recipe', (req, res) => {
   session = req.session;
   // console.log(req.query);
-  let query_str = null;
-  // Applying Tags filter
+  let query_str = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified FROM Recipes WHERE visibility = \'public\')';
   if (req.query !== undefined) {
-    query_str = 'WITH all_recipes AS (SELECT * FROM Recipes)'
+    // Applying Author filter
+    if (req.query.author !== undefined) {
+      let filter_author = req.query.author;
+      query_str = query_str.concat(', ', "authored_recipes AS (SELECT * FROM all_recipes WHERE authorid = '", filter_author, "')");
+    } else {
+      query_str = query_str.concat(', ', 'authored_recipes AS (SELECT * FROM all_recipes)');
+    }
+    // Applying Key filter
+    if (req.query.key !== undefined) {
+      let filter_key = req.query.key;
+      query_str = query_str.concat(', ', "queried_recipes AS (SELECT * FROM authored_recipes WHERE name = '", filter_key, "')");
+    } else {
+      query_str = query_str.concat(", ", "queried_recipes AS (SELECT * FROM authored_recipes)");
+    }
+    // Applying Tags filter
     if (req.query.tags !== undefined) {
       // let tag_list = req.query.tags.replaceall(' ', ',');
       let tag_list = req.query.tags.split(" ").join(", ");
+      console.log(tag_list);
       // let tag_list = req.query.tags.replaceAll(" ", ",");
       query_str = query_str.concat(', ', 'given_tags AS (SELECT * FROM Tags WHERE tagid IN (', tag_list, '))');
       query_str = query_str.concat(', ', 'tag_count AS (SELECT COUNT(*) AS count FROM given_tags)',);
       query_str = query_str.concat(', ', 'recipes_with_tags AS (SELECT COUNT(tagged.recipeid) as count, tagged.recipeid AS recipeid FROM tagged JOIN given_tags ON tagged.tagid = given_tags.tagid GROUP BY tagged.recipeid)');
-      query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT A.recipeid,A.title,A.serves,A.authorid,A.lastmodified,A.visibility from all_recipes AS A JOIN recipes_with_tags AS B ON A.recipeid = B.recipeid WHERE B.count = (SELECT count FROM tag_count))');
+      query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT A.recipeid,A.title,A.serves,A.authorid,A.lastmodified from queried_recipes AS A JOIN recipes_with_tags AS B ON A.recipeid = B.recipeid WHERE B.count = (SELECT count FROM tag_count))');
     } else {
-      query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT * FROM all_recipes)');
+      query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT * FROM queried_recipes)');
     }
-    // Applying Author filter
-    if (req.query.author !== undefined) {
-      let filter_author = req.query.author;
-      query_str = query_str.concat(', ', "filtered_recipes AS (SELECT * FROM tagged_recipes WHERE authorid = '", filter_author, "')");
-    } else {
-      query_str = query_str.concat(', ', 'filtered_recipes AS (SELECT * FROM tagged_recipes)');
-    }
-    query_str = query_str.concat(' ', 'SELECT * FROM filtered_recipes');
+    // Adding all attributes
+    query_str = query_str.concat(', ', 'rating_recipes AS (SELECT * FROM tagged_recipes LEFT JOIN (SELECT recipeId, AVG(rating) AS averageRating, SUM(rating) AS ratingSum, COUNT(chefId) AS ratingTotal, STDDEV(rating) FROM Ratings GROUP BY recipeId) AS A ON tagged_recipes.recipeId = A.recipeId)');
+    // query_str = query_str.concat(', ', 'hot_rating_recipes AS (SELECT * FROM rating_recipes LEFT JOIN (SELECT recipeId, avg(rating) AS hotRating, count(chefId) AS hotTotal FROM Ratings WHERE lastModified - now() < interval \'1 day\' GROUP BY recipeId) AS A ON rating_recipes.recipeId = A.recipeId)');
+    // query_str = query_str.concat(', ', 'filtered_recipes AS (SELECT * FROM hot_rating_recipes JOIN (SELECT recipeId, sum(duration) AS totalTime FROM Steps GROUP BY recipeId) AS A ON hot_rating_recipes.recipeId = A.recipeId)');
+
+    // Applying sort
+    // if (req.query.sort === 'top') {
+    //   query_str = query_str.concat(', ', 'sorted_recipes AS (SELECT * FROM tagged_recipes ORDER BY )');
+    // } else if (req.query.sort === 'hot') {
+
+    // } else if (req.query.sort === 'new') {
+
+    // } else if (req.query.sort === 'controversial') {
+
+    // } else if (req.query.sort === 'fast') {
+
+    // } else {
+
+    // }
   } else {
-    query_str = 'SELECT recipeid, title, serves, authorid FROM Recipes';
+    query_str = query_str.concat(', ', 'rating_recipes AS (SELECT * FROM all_recipes LEFT JOIN (SELECT recipeId, AVG(rating) AS averageRating, SUM(rating) AS ratingSum, COUNT(chefId) AS ratingTotal, STDDEV(rating) FROM Ratings GROUP BY recipeId) AS A ON all_recipes.recipeId = A.recipeId)');
+    // query_str = query_str.concat(', ', 'hot_rating_recipes AS (SELECT * FROM rating_recipes LEFT JOIN (SELECT recipeId, avg(rating) AS hotRating, count(chefId) AS hotTotal FROM Ratings WHERE lastModified - now() < interval \'1 day\' GROUP BY recipeId) AS A ON rating_recipes.recipeId = A.recipeId)');
+    // query_str = query_str.concat(', ', 'filtered_recipes AS (SELECT * FROM hot_rating_recipes JOIN (SELECT recipeId, sum(duration) AS totalTime FROM Steps GROUP BY recipeId) AS A ON hot_rating_recipes.recipeId = A.recipeId)');
   }
+  query_str = query_str.concat(' ', 'SELECT * FROM rating_recipes LIMIT 50');
   model.getRecipes(query_str)
     .then(async response => {
       await response.filter(async (recipe) => {

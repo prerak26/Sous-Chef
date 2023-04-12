@@ -42,6 +42,8 @@ dependencies:
   shared_preferences: ^2.1.0
   flutter_typeahead: ^4.3.7
   requests: ^4.8.0-alpha.0
+  autocomplete_textfield: ^2.0.1
+  searchfield: ^0.7.5
 
   
   

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:souschef_frontend/main.dart';
 import 'package:http/http.dart' as http;
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:souschef_frontend/autocomplete.dart';
 //import 'package:my_recipe_app/models/recipe.dart';
 
 class Ingredient{
@@ -46,7 +48,11 @@ class Recipe{
       };
 }
 
-
+class Tag{
+  int tagid;
+  String name;
+  Tag({required this.tagid,required this.name});
+}
 
 class RecipeForm extends StatefulWidget {
   @override
@@ -54,6 +60,8 @@ class RecipeForm extends StatefulWidget {
 }
 
 class _RecipeFormState extends State<RecipeForm> {
+ 
+
   final _formKey = GlobalKey<FormState>();
 
   //String _name;
@@ -68,6 +76,7 @@ class _RecipeFormState extends State<RecipeForm> {
   final _durationcontroller = TextEditingController();
   
   List<String> _suggestions = [];
+  List<Tag> tagsuggestions = [];
 
   void _getSuggestions(String text) async {
     if (text.contains("@")) {
@@ -87,7 +96,131 @@ class _RecipeFormState extends State<RecipeForm> {
     }
   }
 
+void _fetchSuggestions(String query) async {
+    final String apiUrl = 'http://localhost:3001/tag?key=$query';
+    final response = await curr_session.get(apiUrl);
+    if (response.statusCode == 200) {
+      
+      List<dynamic> t = jsonDecode(response.body);
+      print(t);
+      List<Tag> l = t.map((tagData) {
+        return Tag(
+        //recipeid: recipeData['recipeid'],
+          tagid: tagData['tagid'],
+          name: tagData['name'],
+        );
+      }).toList();
+      
+      Tag def = Tag(tagid: -1,name: "ADD NEW TAG");
+      l.add(def);
+      setState(() {
+        tagsuggestions = l;
+      });
+      //return l;
+    } else {
+      throw Exception('Failed to load suggestions');
+    }
+  }
+
+  Future<void> _addValue(String value) async {
+    final String apiUrl ='http://localhost:3001/tag';
+    final response = await curr_session.post(apiUrl, json.encode({'name': value}));
+    print(response);
+    if (response.statusCode == 200) {
+      setState(() {
+        _selectedValue = value;
+      });
+    } else {
+      throw Exception('Failed to add new value');
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _searchController.addListener(() {
+      onChange();
+    });
+  }
+
+void onChange(){
+  _fetchSuggestions(_searchController.text);
+}
+
+Widget tagcomp(BuildContext){
+    return  Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged : (value) async{
+                //tagsuggestions = await _fetchSuggestions(_searchController.text);
+                
+              },
+              decoration: InputDecoration(
+                hintText: 'Enter a value',
+              ),
+            ),
+          ),
+          Expanded(
+           child:Container(
+                  
+                  width: 100, height: 250,
+                  child:ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemCount: tagsuggestions.length,
+                    itemBuilder: (context, index) => ListTile(
+                      title: Text(
+                        tagsuggestions[index].name,
+                        style: TextStyle(fontSize: 10),),
+                      onTap: () {
+                        if (index != tagsuggestions.length-1) {
+                          setState(() {
+                            _selectedValue = tagsuggestions[index].name;
+                            tagsuggestions.clear();
+                          });
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Add new value?'),
+                              content: Text('Do you want to add the new value: ${_searchController.text}?'),
+                              actions: [
+                                TextButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                                TextButton(
+                                  child: Text('Add'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    _addValue(_searchController.text);
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ))
+                ),
+          
+            
+        ],
+      );
+  }
+
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedValue = '';
+
   
+
+  GlobalKey<AutoCompleteTextFieldState<Tag>> key = GlobalKey();
+  String selectedtag = "";
   Recipe recipe = Recipe(title:"",serves: 0,isPublic: true, steps: []);
   void _saveRecipe() async {
 
@@ -155,6 +288,10 @@ class _RecipeFormState extends State<RecipeForm> {
               ),
 
               SizedBox(height: 16),
+               Container(
+                  width: 100, height: 300,
+                  child:tagcomp(BuildContext),
+               ),
               Row(
               children: [
                 Checkbox(

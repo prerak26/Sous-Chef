@@ -120,7 +120,6 @@ app.get('/logout', (req, res) => {
 app.get('/chef/:id', (req, res) => {
   let filteredResponse = null;
   let errorCaught = null;
-  console.log(req.params.id);
   model.getChef(req.params.id)
     .then(async response => {
       if ((response.length !== 0)) {

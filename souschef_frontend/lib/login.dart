@@ -60,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
     
 
     if(response.statusCode == 200){
-
+      print(response.body);
       session.isLogged = true;
       session.id = _usernameController.text;
       session.pswd = _passwordController.text;

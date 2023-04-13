@@ -371,7 +371,7 @@ const getIngredientByKey = (key, lim) => {
 const getTagByKey = (key, lim) => {
   const searchKey = key + '%';
   return new Promise((resolve, reject) => {
-    pool.query('SELECT * FROM Tags WHERE name like $1 limit $2',
+    pool.query('SELECT * FROM Tags WHERE name like $1 order by (name) limit $2',
       [searchKey, lim], (error, results) => {
         if (error)
           reject(error);

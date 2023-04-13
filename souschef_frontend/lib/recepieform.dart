@@ -7,12 +7,14 @@ import 'package:souschef_frontend/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:souschef_frontend/autocomplete.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 //import 'package:my_recipe_app/models/recipe.dart';
 
 class Ingredient{
-  String id;
+  int id;
   String quantity;
-  Ingredient({required this.id,required this.quantity});
+  String name;
+  Ingredient({required this.id,required this.quantity,required this.name});
   Map<String, dynamic> toJson() => {
         'id': id,
         'quantity': quantity,
@@ -37,14 +39,14 @@ class Recipe{
   bool isPublic = false;
   //List<String> ingredients = [];
   List<Step> steps = [];
-  List<int>tags = [];
-  Recipe({required this.title, required this.serves, required this.isPublic,required this.steps});
+  List<Tag>tags = [];
+  Recipe({required this.title, required this.serves, required this.isPublic,required this.steps,required this.tags});
    Map<String, dynamic> toJson() => {
         'title': title,
         'serves': serves,
         'isPublic': isPublic,
         'steps': steps.map((step) => step.toJson()).toList(),
-
+        'tags': tags.map((tag)=>tag.toJson()).toList(),
       };
 }
 
@@ -52,6 +54,11 @@ class Tag{
   int tagid;
   String name;
   Tag({required this.tagid,required this.name});
+  Map<String, dynamic> toJson() => {
+        'tagid': tagid,
+        'name': name,
+      };
+  
 }
 
 class RecipeForm extends StatefulWidget {
@@ -63,7 +70,7 @@ class _RecipeFormState extends State<RecipeForm> {
  
 
   final _formKey = GlobalKey<FormState>();
-
+  GlobalKey<AutoCompleteTextFieldState<Tag>> key = GlobalKey();
   //String _name;
   //int _serves;
   //List<String> _ingredients = [];
@@ -76,7 +83,7 @@ class _RecipeFormState extends State<RecipeForm> {
   final _durationcontroller = TextEditingController();
   
   List<String> _suggestions = [];
-  List<Tag> tagsuggestions = [];
+  //List<Tag> tagsuggestions = [];
 
   void _getSuggestions(String text) async {
     if (text.contains("@")) {
@@ -96,7 +103,7 @@ class _RecipeFormState extends State<RecipeForm> {
     }
   }
 
-void _fetchSuggestions(String query) async {
+Future<List<Tag>> _fetchSuggestions(String query) async {
     final String apiUrl = 'http://localhost:3001/tag?key=$query';
     final response = await curr_session.get(apiUrl);
     if (response.statusCode == 200) {
@@ -113,10 +120,8 @@ void _fetchSuggestions(String query) async {
       
       Tag def = Tag(tagid: -1,name: "ADD NEW TAG");
       l.add(def);
-      setState(() {
-        tagsuggestions = l;
-      });
-      //return l;
+      
+      return l;
     } else {
       throw Exception('Failed to load suggestions');
     }
@@ -125,15 +130,51 @@ void _fetchSuggestions(String query) async {
   Future<void> _addValue(String value) async {
     final String apiUrl ='http://localhost:3001/tag';
     final response = await curr_session.post(apiUrl, json.encode({'name': value}));
-    print(response);
+    //print(response);
     if (response.statusCode == 200) {
-      setState(() {
-        _selectedValue = value;
-      });
+      
+
     } else {
       throw Exception('Failed to add new value');
     }
   }
+
+  Future<List<Ingredient>> fetchingredient(String query)async{
+    final String apiUrl = 'http://localhost:3001//ingredient?key=$query';
+    final response = await curr_session.get(apiUrl);
+    if (response.statusCode == 200) {
+      
+      List<dynamic> t = jsonDecode(response.body);
+      print(t);
+      // List<Ingredient> l = t.map((tagData) {
+      //   return Ingredient(
+      //   //recipeid: recipeData['recipeid'],
+      //     id: tagData['tagid'],
+      //     quantity: tagData['name'],
+      //   );
+      // }).toList();
+      
+      // Tag def = Tag(tagid: -1,name: "ADD NEW TAG");
+      // l.add(def);
+      
+      return [];
+    } else {
+      throw Exception('Failed to load suggestions');
+    }
+  }
+
+  Future<void> _addIngredient(String value,String _kind) async {
+    final String apiUrl ='http://localhost:3001//ingredient';
+    final response = await curr_session.post(apiUrl, json.encode({'name': value,'kind':_kind}));
+    //print(response);
+    if (response.statusCode == 200) {
+      
+
+    } else {
+      throw Exception('Failed to add new value');
+    }
+  }
+
 
   @override
   void initState() {
@@ -148,46 +189,57 @@ void onChange(){
   _fetchSuggestions(_searchController.text);
 }
 
+List<Tag> tagsub = [];
+
 Widget tagcomp(BuildContext){
+    List<String> k;
     return  Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              onChanged : (value) async{
-                //tagsuggestions = await _fetchSuggestions(_searchController.text);
-                
-              },
-              decoration: InputDecoration(
-                hintText: 'Enter a value',
-              ),
-            ),
+          TypeAheadField(
+            
+            textFieldConfiguration: TextFieldConfiguration(
+            controller: _searchController,
+            autofocus: true,
+            style: DefaultTextStyle.of(context).style.copyWith(
+            fontStyle: FontStyle.italic
           ),
-          Expanded(
-           child:Container(
-                  
-                  width: 100, height: 250,
-                  child:ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: tagsuggestions.length,
-                    itemBuilder: (context, index) => ListTile(
-                      title: Text(
-                        tagsuggestions[index].name,
-                        style: TextStyle(fontSize: 10),),
-                      onTap: () {
-                        if (index != tagsuggestions.length-1) {
+          decoration: InputDecoration(
+            
+            border: OutlineInputBorder()
+          )
+          ),
+
+            suggestionsCallback: (pattern) async{
+               k = pattern.split(',');
+               //print("k : ");
+               //print(k.last);
+              
+              
+              return await _fetchSuggestions(k.last);
+            },
+            itemBuilder: (context,sugesstion){
+              return ListTile(
+                title: Text(sugesstion.name),
+              );
+            }, 
+            onSuggestionSelected: (sugesstion) {
+              //_searchController.text = sugesstion.name;
+              if (sugesstion.tagid != -1) {
                           setState(() {
-                            _selectedValue = tagsuggestions[index].name;
-                            tagsuggestions.clear();
+                           
+                            k = _searchController.text.split(',');
+                            
+                            k.removeLast();
+                           
+                            _searchController.text = k.join(',')+','+sugesstion.name + ',';
                           });
                         } else {
+                          k = _searchController.text.split(',');
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
                               title: Text('Add new value?'),
-                              content: Text('Do you want to add the new value: ${_searchController.text}?'),
+                              content: Text('Do you want to add the new value: ${k.last}?'),
                               actions: [
                                 TextButton(
                                   child: Text('Cancel'),
@@ -197,40 +249,44 @@ Widget tagcomp(BuildContext){
                                   child: Text('Add'),
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                    _addValue(_searchController.text);
+                                    
+                                    _addValue(k.last);
+                                    //k = _searchController.text.split(',');
+                                    //k.removeLast();
+                                    _searchController.text = k.join(',') + ',';
                                   },
                                 ),
                               ],
                             ),
                           );
                         }
-                      },
-                    ),
-                  ))
-                ),
-          
-            
-        ],
+            }
+            ),
+
+        ]
       );
   }
 
   final TextEditingController _searchController = TextEditingController();
-  String _selectedValue = '';
-
-  
-
-  GlobalKey<AutoCompleteTextFieldState<Tag>> key = GlobalKey();
   String selectedtag = "";
-  Recipe recipe = Recipe(title:"",serves: 0,isPublic: true, steps: []);
+  Recipe recipe = Recipe(title:"",serves: 0,isPublic: true, steps: [],tags: []);
   void _saveRecipe() async {
 
     if (_formKey.currentState!.validate()) {
-      
+        List<Tag> _tags = [];
+        List<String> tagsstr = _searchController.text.split(',');
+        for (String str in tagsstr){
+          if(str!=""){
+            var resp = await _fetchSuggestions(str);
+            _tags.add(resp[0]);
+          }
+        }
+        print(_tags);
         recipe.isPublic = _isPublic;
         recipe.title = _nameController.text;
         recipe.serves = int.parse(_servesController.text);
         recipe.steps = _instructions;
-    
+        recipe.tags = _tags;
 
       //print(jsonEncode(recipe.toJson()));
       var response = await curr_session.post('http://localhost:3001/recipe', jsonEncode(recipe.toJson()));
@@ -252,7 +308,7 @@ Widget tagcomp(BuildContext){
       appBar: AppBar(
         title: const Text('Add Recipe'),
       ),
-      body: Padding(
+      body:Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -289,7 +345,7 @@ Widget tagcomp(BuildContext){
 
               SizedBox(height: 16),
                Container(
-                  width: 100, height: 300,
+                  width: 1000, height: 200,
                   child:tagcomp(BuildContext),
                ),
               Row(

@@ -1,12 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:souschef_frontend/auth_home.dart';
 import 'package:souschef_frontend/main.dart';
-import 'package:souschef_frontend/myrecipieholder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:requests/requests.dart';
-//import 'package:shared_preferences_web/shared_preferences_web.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
@@ -14,10 +12,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  //String _username = '';
-  //String _password = '';
-
-  //final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
@@ -25,7 +19,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    
     _loadCredentials();
   }
 
@@ -33,7 +26,6 @@ class _LoginPageState extends State<LoginPage> {
     //SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      
       _usernameController.text = prefs.getString("username") ?? "";
       _passwordController.text = prefs.getString("password") ?? "";
       _rememberMe = prefs.getBool("rememberMe") ?? false;
@@ -46,43 +38,38 @@ class _LoginPageState extends State<LoginPage> {
     await prefs.setString("username", _usernameController.text);
     await prefs.setString("password", _passwordController.text);
     await prefs.setBool("rememberMe", _rememberMe);
-    
   }
 
+  void _login() async {
+    var response = await currSession.post(
+        'http://localhost:3001/login',
+        json.encode({
+          'id': _usernameController.text,
+          'pswd': _passwordController.text,
+        }));
 
-  void _login() async{
-    
-    var response = await curr_session.post('http://localhost:3001/login', json.encode({
-      'id':_usernameController.text,
-      'pswd':_passwordController.text,
-    }));
-
-    
-
-    if(response.statusCode == 200){
+    if (response.statusCode == 200) {
       print(response.body);
       session.isLogged = true;
       session.id = _usernameController.text;
       session.pswd = _passwordController.text;
-      if(_rememberMe == true){
-        
+      if (_rememberMe == true) {
         _saveCredentials();
       }
-      
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const placePage()));
-    }
-    else if(response.statusCode == 403){
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const AuthHomePage()));
+    } else if (response.statusCode == 403) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Invalid username or password.'),
       ));
-    }
-    else{
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Somthing went wrong.'),
       ));
     }
   }
-  void _signup(){
+
+  void _signup() {
     Navigator.pushReplacementNamed(context, '/signup');
   }
 

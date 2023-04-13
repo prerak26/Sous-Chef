@@ -1,19 +1,16 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:souschef_frontend/main.dart';
-import 'package:souschef_frontend/myrecipieholder.dart';
-import 'package:souschef_frontend/userhome.dart';
+import 'package:souschef_frontend/auth_home.dart';
 
-class UserRegistrationPage extends StatefulWidget {
-  const UserRegistrationPage({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
   @override
-  State<UserRegistrationPage> createState() => _UserRegistrationPageState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _UserRegistrationPageState extends State<UserRegistrationPage> {
+class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _idController = TextEditingController();
@@ -21,40 +18,35 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
   bool _rememberMe = false;
 
   void _registerUser() async {
+    var response = await currSession.post(
+        'http://localhost:3001/signup',
+        json.encode({
+          'name': _nameController.text,
+          'id': _idController.text,
+          'pswd': _passwordController.text,
+        }));
 
-    var response = await curr_session.post('http://localhost:3001/signup', {
-      'name': _nameController.text,
-      'id': _idController.text,
-      'pswd': _passwordController.text,
-    });
-
-  
-
-  void _saveCredentials() async {
-    //SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("username", _idController.text);
-    await prefs.setString("password", _passwordController.text);
-    await prefs.setBool("rememberMe", _rememberMe);
-    
-  }
+    void saveCredentials() async {
+      //SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("username", _idController.text);
+      await prefs.setString("password", _passwordController.text);
+      await prefs.setBool("rememberMe", _rememberMe);
+    }
 
     if (response.statusCode == 200) {
       session.isLogged = true;
       session.id = _idController.text;
-      if(_rememberMe == true){
-        _saveCredentials();
+      if (_rememberMe == true) {
+        saveCredentials();
       }
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('User registration sucessful.'),
       ));
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const placePage()));
-      
-    }
-    else if(response.statusCode == 403){}
-    else {
-      
-      
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => const AuthHomePage()));
+    } else if (response.statusCode == 403) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('User registration failed.'),
       ));
@@ -112,18 +104,18 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                 },
               ),
               Row(
-              children: [
-                Checkbox(
-                  value: _rememberMe,
-                  onChanged: (value) {
-                    setState(() {
-                      _rememberMe = value!;
-                    });
-                  },
-                ),
-                const Text("Remember me"),
-              ],
-            ),
+                children: [
+                  Checkbox(
+                    value: _rememberMe,
+                    onChanged: (value) {
+                      setState(() {
+                        _rememberMe = value!;
+                      });
+                    },
+                  ),
+                  const Text("Remember me"),
+                ],
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(

@@ -95,7 +95,7 @@ app.post('/signup', (req, res) => {
 app.get('/auth', (req, res) => {
   session = req.session;
   if (session.userid) {
-    res.status(200).send(session.userid);
+    res.status(200).send({ chefid: session.userid });
     console.log(model.getDateTime(), 'GET: /auth', 200);
   } else {
     res.status(401).send({ message: "Please login first" });
@@ -118,24 +118,58 @@ app.get('/logout', (req, res) => {
 
 // Get chef by id [Chef View]
 app.get('/chef/:id', (req, res) => {
+  let filteredResponse = null;
+  let errorCaught = null;
+  console.log(req.params.id);
   model.getChef(req.params.id)
-    .then(response => {
+    .then(async response => {
       if ((response.length !== 0)) {
-        let filteredResponse = {
+        filteredResponse = {
           chefId: response[0].chefid,
-          name: response[0].name
+          name: response[0].name,
+          bookmarks: null,
+          recipes: null
         };
-        res.status(200).send(filteredResponse);
-        console.log(model.getDateTime(), 'GET: /chef/:id', 200);
-      }
-      else {
-        res.status(404).send({ message: "Chef not found" });
-        console.log(model.getDateTime(), 'GET: /chef/:id', 404);
+        let bookmark_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified FROM Recipes WHERE visibility = \'public\')';
+        bookmark_query = bookmark_query.concat(', ', 'bookmarked_recipes AS (SELECT all_recipes.recipeId, title, serves, authorid, lastmodified FROM all_recipes JOIN (SELECT recipeId from Bookmarks WHERE chefId = \'', filteredResponse.chefId, '\') AS A ON all_recipes.recipeId = A.recipeId)');
+        bookmark_query = bookmark_query.concat(model.recipeListQueries('bookmarked_recipes', 'filtered_recipes'));
+        bookmark_query = bookmark_query.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY lastmodified DESC)');
+        bookmark_query = bookmark_query.concat(' ', 'SELECT * FROM sorted_recipes');
+        await model.getRecipes(bookmark_query)
+          .then(response => {
+            filteredResponse.bookmarks = response;
+          })
+          .catch(error => {
+            errorCaught = error;
+          });
+
+        let recipes_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified FROM Recipes WHERE authorId = \'' + filteredResponse.chefId + '\')';
+        recipes_query = recipes_query.concat(model.recipeListQueries('all_recipes', 'filtered_recipes'));
+        recipes_query = recipes_query.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY lastmodified DESC)');
+        recipes_query = recipes_query.concat(' ', 'SELECT * FROM sorted_recipes');
+        await model.getRecipes(recipes_query)
+          .then(response => {
+            filteredResponse.recipes = response;
+          })
+          .catch(error => {
+            errorCaught = error;
+          });
       }
     })
     .catch(error => {
-      res.status(500).send(error);
-      console.log(model.getDateTime(), 'GET: /chef/:id', 500);
+      errorCaught = error;
+    })
+    .finally(() => {
+      if (errorCaught !== null) {
+        res.status(500).send(errorCaught);
+        console.log(model.getDateTime(), 'GET: /chef/:id', 500);
+      } else if (filteredResponse !== null) {
+        res.status(200).send(filteredResponse);
+        console.log(model.getDateTime(), 'GET: /chef/:id', 200);
+      } else {
+        res.status(404).send({ message: "Chef not found" });
+        console.log(model.getDateTime(), 'GET: /chef/:id', 404);
+      }
     });
 });
 
@@ -169,7 +203,6 @@ app.post('/recipe', (req, res) => {
   if (session.userid)
     model.getRecipeId()
       .then(async response => {
-        console.log(req.body);
         recipeId = response;
         await model.createRecipe(recipeId, req.body.title, parseInt(req.body.serves),
           (req.body.isPublic ? 'public' : 'private'), session.userid)
@@ -398,12 +431,10 @@ app.get('/recipe', (req, res) => {
     query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT * FROM queried_recipes)');
   }
   // Adding all attributes
-  query_str = query_str.concat(', ', 'rating_recipes AS (SELECT tagged_recipes.recipeId AS recipeid, title, serves, authorid, lastmodified, averagerating, ratingsum, ratingtotal, stddev FROM tagged_recipes LEFT JOIN (SELECT recipeId, AVG(rating) AS averageRating, SUM(rating) AS ratingSum, COUNT(chefId) AS ratingTotal, STDDEV(rating) FROM Ratings GROUP BY recipeId) AS A ON tagged_recipes.recipeId = A.recipeId)');
-  query_str = query_str.concat(', ', 'hot_rating_recipes AS (SELECT rating_recipes.recipeId AS recipeid, title, serves, authorid, lastmodified, averagerating, ratingsum, ratingtotal, stddev, hotRating, hotTotal FROM rating_recipes LEFT JOIN (SELECT recipeId, avg(rating) AS hotRating, count(chefId) AS hotTotal FROM Ratings WHERE now() - lastModified  < interval \'1 day\' GROUP BY recipeId) AS A ON rating_recipes.recipeId = A.recipeId)');
-  query_str = query_str.concat(', ', 'filtered_recipes AS (SELECT * FROM hot_rating_recipes JOIN (SELECT recipeId, sum(duration) AS totalTime FROM Steps GROUP BY recipeId) AS A ON hot_rating_recipes.recipeId = A.recipeId)');
+  query_str = query_str.concat(model.recipeListQueries('tagged_recipes', 'filtered_recipes'));
 
   // Applying sort
-  if(req.query.sort === undefined){
+  if (req.query.sort === undefined) {
     query_str = query_str.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY RANDOM())');
   }
   else if (req.query.sort === 'top') {

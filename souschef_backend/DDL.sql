@@ -12,7 +12,7 @@ create TABLE Recipes
         title VARCHAR(50) not null,
         serves INT check (serves > 0),
         lastModified TIMESTAMP not null,
-        visibility varchar(6) check (
+        visibility varchar(7) check (
             visibility in ('public', 'private')
         ),
         authorId varchar(25) not null,

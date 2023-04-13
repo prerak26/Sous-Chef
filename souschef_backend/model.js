@@ -86,6 +86,14 @@ const getRecipes = (query_str) => {
   })
 }
 
+const recipeListQueries = (in_table, out_table) => {
+  query_str = '';
+  query_str = query_str.concat(', ', 'rating_recipes AS (SELECT ', in_table, '.recipeId AS recipeid, title, serves, authorid, lastmodified, averagerating, ratingsum, ratingtotal, stddev FROM ', in_table, ' LEFT JOIN (SELECT recipeId, AVG(rating) AS averageRating, SUM(rating) AS ratingSum, COUNT(chefId) AS ratingTotal, STDDEV(rating) FROM Ratings GROUP BY recipeId) AS A ON ', in_table, '.recipeId = A.recipeId)');
+  query_str = query_str.concat(', ', 'hot_rating_recipes AS (SELECT rating_recipes.recipeId AS recipeid, title, serves, authorid, lastmodified, averagerating, ratingsum, ratingtotal, stddev, hotRating, hotTotal FROM rating_recipes LEFT JOIN (SELECT recipeId, avg(rating) AS hotRating, count(chefId) AS hotTotal FROM Ratings WHERE now() - lastModified  < interval \'1 day\' GROUP BY recipeId) AS A ON rating_recipes.recipeId = A.recipeId)');
+  query_str = query_str.concat(', ', out_table, ' AS (SELECT * FROM hot_rating_recipes JOIN (SELECT recipeId, sum(duration) AS totalTime FROM Steps GROUP BY recipeId) AS A ON hot_rating_recipes.recipeId = A.recipeId)');
+  return query_str;
+}
+
 const getRecipeId = () => {
   return new Promise((resolve, reject) => {
     // pool.query('SELECT count(*) FROM Recipes', (error, results) => {
@@ -184,7 +192,7 @@ const createBookmark = (chefid, recipeId) => {
   const RECIPEID = recipeId;
   return new Promise((resolve, reject) => {
     pool.query('INSERT INTO Bookmarks (chefid, recipeid) VALUES ($1, $2)',
-      [CHEFID,RECIPEID], (error, results) => {
+      [CHEFID, RECIPEID], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -198,7 +206,7 @@ const removeBookmark = (chefid, recipeId) => {
   const RECIPEID = recipeId;
   return new Promise((resolve, reject) => {
     pool.query('DELETE FROM Bookmarks WHERE chefid = $1 AND recipeid = $2',
-      [CHEFID,RECIPEID], (error, results) => {
+      [CHEFID, RECIPEID], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -214,7 +222,7 @@ const rateRecipe = (chefid, recipeId, rating) => {
   const LASTMODIFIED = getDateTime();
   return new Promise((resolve, reject) => {
     pool.query('INSERT INTO Ratings (chefid, recipeid, rating, lastmodified) VALUES ($1, $2, $3, $4) ON CONFLICT (chefid, recipeid) DO UPDATE SET rating = $3, lastmodified = $4',
-      [CHEFID,RECIPEID,RATING,LASTMODIFIED], (error, results) => {
+      [CHEFID, RECIPEID, RATING, LASTMODIFIED], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -227,7 +235,7 @@ const unrateRecipe = (chefid, recipeId) => {
   const RECIPEID = recipeId;
   return new Promise((resolve, reject) => {
     pool.query('DELETE FROM Ratings WHERE chefid = $1 AND recipeid = $2',
-      [CHEFID,RECIPEID], (error, results) => {
+      [CHEFID, RECIPEID], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -267,7 +275,7 @@ const updateShoppingListIngredient = (chefId, ingredientId, quantity) => {
   const CHEFID = chefId;
   const QUANTITY = quantity;
   return new Promise((resolve, reject) => {
-      pool.query('INSERT INTO ShoppingList (chefid, ingredientid, quantity) VALUES ($1, $2, $3) ON CONFLICT(chefid, ingredientid) DO UPDATE SET quantity = (SELECT quantity FROM ShoppingList AS A WHERE A.chefid = $1 AND A.ingredientid = $2 LIMIT 1) + $3;', [CHEFID, INGREDIENTID, QUANTITY], (error, results) => {
+    pool.query('INSERT INTO ShoppingList (chefid, ingredientid, quantity) VALUES ($1, $2, $3) ON CONFLICT(chefid, ingredientid) DO UPDATE SET quantity = (SELECT quantity FROM ShoppingList AS A WHERE A.chefid = $1 AND A.ingredientid = $2 LIMIT 1) + $3;', [CHEFID, INGREDIENTID, QUANTITY], (error, results) => {
       if (error)
         reject(error);
       if (results)
@@ -348,7 +356,7 @@ const getRequirementsByRecipe = (recipeId) => {
 }
 
 const getIngredientByKey = (key, lim) => {
-  const searchKey = key+'%';
+  const searchKey = key + '%';
   return new Promise((resolve, reject) => {
     pool.query('SELECT * FROM Ingredients WHERE name like $1 limit $2',
       [searchKey, lim], (error, results) => {
@@ -361,7 +369,7 @@ const getIngredientByKey = (key, lim) => {
 }
 
 const getTagByKey = (key, lim) => {
-  const searchKey = key+'%';
+  const searchKey = key + '%';
   return new Promise((resolve, reject) => {
     pool.query('SELECT * FROM Tags WHERE name like $1 limit $2',
       [searchKey, lim], (error, results) => {
@@ -374,7 +382,7 @@ const getTagByKey = (key, lim) => {
 }
 
 const getChefByKey = (key, lim) => {
-  const searchKey = key+'%';
+  const searchKey = key + '%';
   return new Promise((resolve, reject) => {
     pool.query('SELECT * FROM Chefs WHERE chefId like $1 OR name like $1 limit $2',
       [searchKey, lim], (error, results) => {
@@ -417,5 +425,6 @@ module.exports = {
   getRequirementsByRecipe,
   getIngredientByKey,
   getTagByKey,
-  getChefByKey
+  getChefByKey,
+  recipeListQueries
 }

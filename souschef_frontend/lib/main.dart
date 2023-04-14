@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:souschef_frontend/navigation.dart';
 import 'package:http/http.dart' as http;
+import 'package:souschef_frontend/route_generator.dart';
 
 class Ingredient {
   int id;
@@ -121,9 +121,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       initialRoute: '/',
-      routes: {
-        '/': (context) => const NavigationWidget(),
-      },
+      onGenerateRoute: RouteGenerator.generateRoute,
     );
   }
 }

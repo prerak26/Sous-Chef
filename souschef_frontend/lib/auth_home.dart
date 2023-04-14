@@ -15,6 +15,6 @@ class _AuthHomePageState extends State<AuthHomePage> {
     if (session.isLogged) {
       return const HomePage();
     }
-    return authorisationPage(context);
+    return authorisationPage(context, "home");
   }
 }

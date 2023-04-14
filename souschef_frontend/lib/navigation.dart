@@ -3,58 +3,63 @@ import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:souschef_frontend/discover.dart';
 import 'package:souschef_frontend/auth_home.dart';
 import 'package:souschef_frontend/auth_shop.dart';
-import 'package:souschef_frontend/signup.dart';
+import 'package:souschef_frontend/route_generator.dart';
 
 List<PersistentBottomNavBarItem> _navBarItems() {
   return [
     PersistentBottomNavBarItem(
       icon: const Icon(Icons.home),
       title: 'Home',
-      routeAndNavigatorSettings: RouteAndNavigatorSettings(
+      routeAndNavigatorSettings: const RouteAndNavigatorSettings(
         initialRoute: "/",
-        routes: {
-          '/': (context) => const NavigationWidget(),
-          '/signup': (context) => const SignupPage(),
-        },
+        onGenerateRoute: RouteGenerator.generateRoute,
       ),
     ),
     PersistentBottomNavBarItem(
       icon: const Icon(Icons.search),
       title: 'Discover',
-      routeAndNavigatorSettings: RouteAndNavigatorSettings(
+      routeAndNavigatorSettings: const RouteAndNavigatorSettings(
         initialRoute: "/",
-        routes: {
-          '/': (context) => const NavigationWidget(),
-          '/signup': (context) => const SignupPage(),
-        },
+        onGenerateRoute: RouteGenerator.generateRoute,
       ),
     ),
     PersistentBottomNavBarItem(
       icon: const Icon(Icons.add_box),
       title: 'Shopping List',
-      routeAndNavigatorSettings: RouteAndNavigatorSettings(
+      routeAndNavigatorSettings: const RouteAndNavigatorSettings(
         initialRoute: "/",
-        routes: {
-          '/': (context) => const NavigationWidget(),
-          '/signup': (context) => const SignupPage(),
-        },
+        onGenerateRoute: RouteGenerator.generateRoute,
       ),
     ),
   ];
 }
 
-class NavigationWidget extends StatefulWidget {
-  const NavigationWidget({super.key});
+class NavigationView extends StatefulWidget {
+  final String initalView;
+  const NavigationView({super.key, required this.initalView});
   @override
-  State<NavigationWidget> createState() => _NavigationWidgetState();
+  State<NavigationView> createState() => _NavigationViewState();
 }
 
-class _NavigationWidgetState extends State<NavigationWidget> {
+class _NavigationViewState extends State<NavigationView> {
   PersistentTabController _controller = PersistentTabController();
   @override
   void initState() {
     super.initState();
-    _controller = PersistentTabController(initialIndex: 1);
+    switch (widget.initalView) {
+      case "home":
+        _controller = PersistentTabController(initialIndex: 0);
+        break;
+      case "discover":
+        _controller = PersistentTabController(initialIndex: 1);
+        break;
+      case "shopping-list":
+        _controller = PersistentTabController(initialIndex: 2);
+        break;
+      default:
+        _controller = PersistentTabController(initialIndex: 1);
+        break;
+    }
   }
 
   @override
@@ -66,7 +71,7 @@ class _NavigationWidgetState extends State<NavigationWidget> {
         screens: const [
           AuthHomePage(),
           DiscoverPage(),
-          ShoppingPage(),
+          AuthShopPage(),
         ],
         items: _navBarItems(),
         confineInSafeArea: true,

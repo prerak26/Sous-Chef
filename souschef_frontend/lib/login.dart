@@ -1,17 +1,17 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:souschef_frontend/auth_home.dart';
 import 'package:souschef_frontend/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginView extends StatefulWidget {
+  final String caller;
+  const LoginView({super.key, required this.caller});
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginViewState extends State<LoginView> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
@@ -47,30 +47,30 @@ class _LoginPageState extends State<LoginPage> {
           'id': _usernameController.text,
           'pswd': _passwordController.text,
         }));
-
-    if (response.statusCode == 200) {
-      print(response.body);
-      session.isLogged = true;
-      session.id = _usernameController.text;
-      session.pswd = _passwordController.text;
-      if (_rememberMe == true) {
-        _saveCredentials();
+    if (context.mounted) {
+      if (response.statusCode == 200) {
+        session.isLogged = true;
+        session.id = _usernameController.text;
+        session.pswd = _passwordController.text;
+        if (_rememberMe == true) {
+          _saveCredentials();
+        }
+        Navigator.of(context).pushNamed('/', arguments: widget.caller);
+      } else if (response.statusCode == 403) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Invalid username or password.'),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Somthing went wrong.'),
+        ));
       }
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const AuthHomePage()));
-    } else if (response.statusCode == 403) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Invalid username or password.'),
-      ));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Somthing went wrong.'),
-      ));
     }
   }
 
   void _signup() {
-    Navigator.pushReplacementNamed(context, '/signup');
+    Navigator.of(context)
+        .pushReplacementNamed('/signup', arguments: widget.caller);
   }
 
   @override

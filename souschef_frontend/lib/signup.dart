@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:souschef_frontend/main.dart';
-import 'package:souschef_frontend/auth_home.dart';
 
-class SignupPage extends StatefulWidget {
-  const SignupPage({super.key});
+class SignupView extends StatefulWidget {
+  final String caller;
+  const SignupView({super.key, required this.caller});
   @override
-  State<SignupPage> createState() => _SignupPageState();
+  State<SignupView> createState() => _SignupViewState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _SignupViewState extends State<SignupView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _idController = TextEditingController();
@@ -34,22 +34,23 @@ class _SignupPageState extends State<SignupPage> {
       await prefs.setBool("rememberMe", _rememberMe);
     }
 
-    if (response.statusCode == 200) {
-      session.isLogged = true;
-      session.id = _idController.text;
-      if (_rememberMe == true) {
-        saveCredentials();
+    if (context.mounted) {
+      if (response.statusCode == 200) {
+        session.isLogged = true;
+        session.id = _idController.text;
+        if (_rememberMe == true) {
+          saveCredentials();
+        }
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('User registration sucessful.'),
+        ));
+        Navigator.of(context).pushNamed('/', arguments: widget.caller);
+      } else if (response.statusCode == 403) {
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('User registration failed.'),
+        ));
       }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('User registration sucessful.'),
-      ));
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => const AuthHomePage()));
-    } else if (response.statusCode == 403) {
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('User registration failed.'),
-      ));
     }
   }
 

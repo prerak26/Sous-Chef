@@ -1,27 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:souschef_frontend/signup.dart';
-import 'package:souschef_frontend/login.dart';
 
-Widget authorisationPage(context) {
+Widget authorisationPage(BuildContext context, String caller) {
   return Scaffold(
     body: Center(
-        child: Column(
-      children: [
+      child: Column(children: [
         ElevatedButton(
-          onPressed: () => {
-            Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const LoginPage()))
-          },
+          onPressed: () =>
+              {Navigator.of(context).pushNamed('/login', arguments: caller)},
           child: const Text('Login'),
         ),
         ElevatedButton(
-          onPressed: () => {
-            Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const SignupPage()))
-          },
+          onPressed: () =>
+              {Navigator.of(context).pushNamed('/signup', arguments: caller)},
           child: const Text('Register'),
         ),
-      ],
-    )),
+      ]),
+    ),
   );
 }

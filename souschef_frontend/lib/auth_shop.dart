@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/widgets.dart';
 
-class ShoppingPage extends StatefulWidget {
-  const ShoppingPage({super.key});
+class AuthShopPage extends StatefulWidget {
+  const AuthShopPage({super.key});
   @override
-  State<ShoppingPage> createState() => _ShoppingPageState();
+  State<AuthShopPage> createState() => _AuthShopPageState();
 }
 
-class _ShoppingPageState extends State<ShoppingPage> {
+class _AuthShopPageState extends State<AuthShopPage> {
   @override
   Widget build(BuildContext context) {
     if (session.isLogged) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Shopping List'),
+          title: const Text('AuthShop List'),
         ),
         body: const Text(
           'shoppping list',
@@ -24,6 +24,6 @@ class _ShoppingPageState extends State<ShoppingPage> {
         ),
       );
     }
-    return authorisationPage(context);
+    return authorisationPage(context, "shopping-list");
   }
 }

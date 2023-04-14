@@ -15,7 +15,7 @@ class _RecipePageState extends State<RecipePage> {
   @override
   Widget build(BuildContext context) {
     if (session.isLogged) {
-      return const HomePage();
+      return const HomeView();
     }
     return Scaffold(
         appBar: AppBar(title: Text('$recipeid')), body: Text('$recipeid'));

@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/recipe_form.dart';
+import 'package:souschef_frontend/widgets.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomeView extends StatefulWidget {
+  const HomeView({super.key});
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomeView> createState() => _HomeViewState();
 }
 
 class User {
@@ -15,7 +16,7 @@ class User {
   User({this.chefid, this.name});
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomeViewState extends State<HomeView> {
   // ignore: prefer_typing_uninitialized_variables
   var response;
   Future<User> gethomeinfo() async {
@@ -50,6 +51,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!session.isLogged) {
+      return authorisationPage(context, "home");
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Recipies'),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:souschef_frontend/discover.dart';
-import 'package:souschef_frontend/auth_home.dart';
-import 'package:souschef_frontend/auth_shop.dart';
+import 'package:souschef_frontend/shoping_list.dart';
+import 'package:souschef_frontend/home.dart';
 import 'package:souschef_frontend/route_generator.dart';
 
 List<PersistentBottomNavBarItem> _navBarItems() {
@@ -69,9 +69,9 @@ class _NavigationViewState extends State<NavigationView> {
         context,
         controller: _controller,
         screens: const [
-          AuthHomePage(),
+          HomeView(),
           DiscoverPage(),
-          AuthShopPage(),
+          ShoppingListView(),
         ],
         items: _navBarItems(),
         confineInSafeArea: true,

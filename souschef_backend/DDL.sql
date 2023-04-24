@@ -1,6 +1,6 @@
 create TABLE Chefs
     (
-        chefId VARCHAR(25) not null,
+        chefId VARCHAR(40) not null,
         name VARCHAR(50),
         hashedPassword VARCHAR(80) not null,
         primary key (chefId)
@@ -12,10 +12,11 @@ create TABLE Recipes
         title VARCHAR(50) not null,
         serves INT check (serves > 0),
         lastModified TIMESTAMP not null,
+        duration INT not null, -- in seconds
         visibility varchar(7) check (
             visibility in ('public', 'private')
         ),
-        authorId varchar(25) not null,
+        authorId varchar(40) not null,
         primary key (recipeId),
         foreign key (authorId) references Chefs on delete set null
     );
@@ -23,9 +24,9 @@ create TABLE Recipes
 create TABLE Ingredients
     (
         ingredientId INT not null,
-        name VARCHAR(50) not null,
-        kind varchar(11) check (
-            kind in ('whole', 'grams', 'cups', 'teaspoons', 'tablespoons', 'milliliters')
+        name VARCHAR(150) not null,
+        kind varchar(13) check (
+            kind in ('whole(s)', 'gram(s)', 'cup(s)', 'can(s)', 'lb(s)', 'teaspoon(s)', 'ounce(s)', 'pinch(es)', 'bottle(s)', 'tablespoon(s)', 'ml(s)')
         ),
         primary key (ingredientId)
     );
@@ -34,8 +35,7 @@ create TABLE Steps
     (
         recipeId INT not null,
         stepNumber INT not null,
-        description VARCHAR(500) not null,
-        duration INT not null, -- in seconds
+        description VARCHAR(512) not null,
         primary key (recipeId, stepNumber),
         foreign key (recipeId) references Recipes on delete cascade
     );
@@ -43,12 +43,10 @@ create TABLE Steps
 create TABLE Requirements
     (
         recipeId INT not null,
-        stepNumber INT not null,
-        serialNumber INT not null,
         ingredientId INT not null,
         quantity INT not null,
-        primary key (recipeId, stepNumber, serialNumber),
-        foreign key (recipeId, stepNumber) references Steps on delete cascade,
+        primary key (recipeId, ingredientId),
+        foreign key (recipeId) references Recipes on delete cascade,
         foreign key (ingredientId) references Ingredients on delete set null
     );
 
@@ -71,7 +69,7 @@ create TABLE Tagged
 create TABLE Bookmarks
     (
         recipeId INT not null,
-        chefId VARCHAR(25) not null,
+        chefId VARCHAR(40) not null,
         primary key (recipeId, chefId),
         foreign key (recipeId) references Recipes on delete cascade,
         foreign key (chefId) references Chefs on delete cascade
@@ -80,7 +78,7 @@ create TABLE Bookmarks
 create TABLE Ratings
     (
         recipeId INT not null,
-        chefId VARCHAR(25) not null,
+        chefId VARCHAR(40) not null,
         rating INT check (rating > 0 and rating < 6),
         lastModified TIMESTAMP not null,
         primary key (recipeId, chefId),
@@ -90,7 +88,7 @@ create TABLE Ratings
 
 create TABLE ShoppingList
     (
-        chefId VARCHAR(25) not null,
+        chefId VARCHAR(40) not null,
         ingredientId INT not null,
         quantity INT check (quantity > 0),
         primary key (chefId,ingredientId),

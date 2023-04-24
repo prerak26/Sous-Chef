@@ -55,7 +55,9 @@ class _LoginViewState extends State<LoginView> {
         if (_rememberMe == true) {
           _saveCredentials();
         }
-        Navigator.of(context).pushNamed('/', arguments: widget.caller);
+        Navigator.of(context)
+            .pushNamed('/', arguments: widget.caller)
+            .then((value) => setState(() {}));
       } else if (response.statusCode == 403) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Invalid username or password.'),

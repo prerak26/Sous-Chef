@@ -247,7 +247,7 @@ const unrateRecipe = (chefid, recipeId) => {
 const getShoppingList = (id) => {
   const ID = id;
   return new Promise((resolve, reject) => {
-    pool.query('SELECT * FROM ShoppingList WHERE chefId=$1', [ID], (error, results) => {
+    pool.query('SELECT ingredientid, name, kind, quantity FROM ShoppingList NATURAL JOIN Ingredients WHERE chefId=$1', [ID], (error, results) => {
       if (error)
         reject(error);
       if (results)

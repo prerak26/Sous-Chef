@@ -401,7 +401,6 @@ app.get('/recipe', (req, res) => {
   session = req.session;
   // console.log(req.query);
   let query_str = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified FROM Recipes WHERE visibility = \'public\')';
-  console.log(req.query);
   // Applying Author filter
   if (req.query.author !== undefined) {
     let filter_author = req.query.author;
@@ -652,7 +651,7 @@ app.delete('/rating/:id', (req, res) => {
 app.get('/shoppinglist', (req, res) => {
   session = req.session;
   if (session.userid)
-    model.getShoppingList(parseInt(session.userid))
+    model.getShoppingList(session.userid)
       .then(response => {
         res.status(200).send(response);
         console.log(model.getDateTime(), 'GET: /shoppinglist', 200);

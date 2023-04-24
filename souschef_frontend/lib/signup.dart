@@ -44,7 +44,9 @@ class _SignupViewState extends State<SignupView> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('User registration sucessful.'),
         ));
-        Navigator.of(context).pushNamed('/', arguments: widget.caller);
+        Navigator.of(context)
+            .pushNamed('/', arguments: widget.caller)
+            .then((value) => setState(() {}));
       } else if (response.statusCode == 403) {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

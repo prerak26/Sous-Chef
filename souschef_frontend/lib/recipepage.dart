@@ -1,86 +1,51 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
-class RecipePage extends StatefulWidget {
-  final String recipieId;
-  const RecipePage({super.key, required this.recipieId});
+import 'main.dart';
+
+class RecipeView extends StatefulWidget {
+  final String recipeId;
+  const RecipeView({super.key, required this.recipeId});
   @override
-  State<RecipePage> createState() => _RecipePageState();
+  State<RecipeView> createState() => _RecipeViewState();
 }
 
 
 
-class _RecipePageState extends State<RecipePage> {
+class _RecipeViewState extends State<RecipeView> {
+  
+  Future<dynamic> _fetchrecipe() async {
+    
+    final String apiUrl = '/recipe/:id?id=${widget.recipeId}';
+    final response = await currSession.get(apiUrl);
+    if (response.statusCode == 200) {
+      List<dynamic> t = jsonDecode(response.body);
+      
+      print(t);
+      return t;
+      
+    } else {
+      throw Exception('Failed to load suggestions');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(recipe.title),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.network(
-              'https://www.example.com/${recipe.title.toLowerCase().replaceAll(' ', '_')}.jpg',
-              width: double.infinity,
-              height: 200,
-              fit: BoxFit.cover,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ingredients',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: recipe.steps
-                        .expand((step) => step.ingredients)
-                        .map((ingredient) => Text(
-                              '- ${ingredient.quantity} ${ingredient.kind} ${ingredient.name}',
-                              style: TextStyle(fontSize: 16),
-                            ))
-                        .toList(),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'Instructions',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: recipe.steps
-                        .asMap()
-                        .map((index, step) => MapEntry(
-                            index,
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Step ${index + 1}',
-                                  style: TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
-                                SizedBox(height: 5),
-                                Text(step.desc, style: TextStyle(fontSize: 16)),
-                                SizedBox(height: 10),
-                              ],
-                            )))
-                        .values
-                        .toList(),
-                  ),
-                ],
+    return FutureBuilder<dynamic>(
+        future: _fetchrecipe(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Scaffold(
+              appBar: AppBar(
+                title: Text("Recipe ${widget.recipeId}"),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+              
+            );
+          } else {
+            return const CircularProgressIndicator();
+          }
+        });
   }
 
 }

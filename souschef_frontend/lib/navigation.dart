@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:souschef_frontend/discover.dart';
+import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/shoping_list.dart';
 import 'package:souschef_frontend/home.dart';
 import 'package:souschef_frontend/route_generator.dart';
@@ -8,6 +9,7 @@ import 'package:souschef_frontend/route_generator.dart';
 List<PersistentBottomNavBarItem> _navBarItems() {
   return [
     PersistentBottomNavBarItem(
+      
       icon: const Icon(Icons.home),
       title: 'Home',
       routeAndNavigatorSettings: const RouteAndNavigatorSettings(
@@ -42,6 +44,7 @@ class NavigationView extends StatefulWidget {
 }
 
 class _NavigationViewState extends State<NavigationView> {
+  bool doRefresh = session.isLogged;
   PersistentTabController _controller = PersistentTabController();
   @override
   void initState() {
@@ -66,6 +69,7 @@ class _NavigationViewState extends State<NavigationView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: PersistentTabView(
+        
         context,
         controller: _controller,
         screens: const [
@@ -73,12 +77,18 @@ class _NavigationViewState extends State<NavigationView> {
           DiscoverView(),
           ShoppingListView(),
         ],
+
         items: _navBarItems(),
+        onItemSelected: (value) {
+          setState(() {
+            doRefresh = session.isLogged;
+          });
+        },
         confineInSafeArea: true,
         backgroundColor: Colors.white,
         handleAndroidBackButtonPress: true,
         resizeToAvoidBottomInset: true,
-        stateManagement: true,
+        stateManagement: (_controller.index==1 || doRefresh) ? true : false,
         hideNavigationBarWhenKeyboardShows: true,
         decoration: NavBarDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -97,6 +107,7 @@ class _NavigationViewState extends State<NavigationView> {
         ),
         navBarStyle: NavBarStyle.style6,
       ),
+      
     );
   }
 }

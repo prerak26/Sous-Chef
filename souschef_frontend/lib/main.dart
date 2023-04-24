@@ -82,7 +82,7 @@ Globals session = Globals(isLogged: false, id: "", pswd: "");
 class Session {
   Map<String, String> headers;
   Session({required this.headers});
-  String baseUrl = "http://192.168.0.107:3001";
+  String baseUrl = "http://localhost:3001";
 
   Future<http.Response> get(String path) async {
     http.Response response =

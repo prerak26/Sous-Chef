@@ -42,7 +42,7 @@ class _DiscoverViewState extends State<DiscoverView> {
 
   void _onCardTap(int id) {
     Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => RecipePage(recipeid: id)));
+        MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
   }
 
   Widget card(String title, int serves, String authorid, BuildContext context) {

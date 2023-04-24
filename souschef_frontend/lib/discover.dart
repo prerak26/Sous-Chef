@@ -11,18 +11,6 @@ class DiscoverView extends StatefulWidget {
   State<DiscoverView> createState() => _DiscoverViewState();
 }
 
-class Cards {
-  int recipeid;
-  String title;
-  int serves;
-  String authorid;
-  Cards(
-      {required this.recipeid,
-      required this.title,
-      required this.serves,
-      required this.authorid});
-}
-
 class _DiscoverViewState extends State<DiscoverView> {
   late Response response;
 
@@ -35,8 +23,15 @@ class _DiscoverViewState extends State<DiscoverView> {
           title: recipeData['title'],
           serves: recipeData['serves'],
           authorid: recipeData['authorid'],
-          recipeid: recipeData['recipeid']);
+          recipeid: recipeData['recipeid'],
+          //rating: recipeData['averagerating'],
+          //totalTime: recipeData['totaltime'],
+
+          );
+          
+
     }).toList();
+    print(jsonData[0]);
     return cards;
   }
 
@@ -45,40 +40,7 @@ class _DiscoverViewState extends State<DiscoverView> {
         MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
   }
 
-  Widget card(String title, int serves, String authorid, BuildContext context) {
-    String serve = '$serves';
-    return Card(
-      color: Colors.yellow[50],
-      elevation: 8.0,
-      margin: const EdgeInsets.all(4.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 38.0,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            serve,
-            style: const TextStyle(
-              fontSize: 38.0,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            authorid,
-            style: const TextStyle(
-              fontSize: 38.0,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {

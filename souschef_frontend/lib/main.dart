@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:souschef_frontend/route_generator.dart';
@@ -69,6 +71,24 @@ class Tag {
 void main() {
   runApp(const MyApp());
 }
+
+class Cards {
+  int recipeid;
+  String title;
+  int serves;
+  String authorid;
+  //double rating;
+  //int totalTime;
+  Cards(
+      {required this.recipeid,
+      required this.title,
+      required this.serves,
+      required this.authorid,
+      //required this.rating,
+      //required this.totalTime,
+      });
+}
+
 
 class Globals {
   bool isLogged;

@@ -1,4 +1,4 @@
-import 'dart:ffi';
+// import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -6,20 +6,15 @@ import 'package:souschef_frontend/route_generator.dart';
 
 class Ingredient {
   int id;
-  int? quantity = 0;
+  double? quantity;
   String name;
   String? kind = "gram";
-  Ingredient(
-      {required this.id,
-      this.quantity,
-      required this.name,
-      this.kind}
-    );
+  Ingredient({required this.id, this.quantity, required this.name, this.kind});
   Map<String, dynamic> toJson() => {
         'id': id,
         'quantity': quantity,
-        'kind' : kind,
-        'name' : name,
+        'kind': kind,
+        'name': name,
       };
 }
 
@@ -78,17 +73,16 @@ class Cards {
   int serves;
   String authorid;
   double? rating;
-  String totalTime;
-  Cards(
-      {required this.recipeid,
-      required this.title,
-      required this.serves,
-      required this.authorid,
-      this.rating,
-      required this.totalTime,
-      });
+  int duration;
+  Cards({
+    required this.recipeid,
+    required this.title,
+    required this.serves,
+    required this.authorid,
+    this.rating,
+    required this.duration,
+  });
 }
-
 
 class Globals {
   bool isLogged;

@@ -129,8 +129,8 @@ app.get('/chef/:id', (req, res) => {
           bookmarks: null,
           recipes: null
         };
-        let bookmark_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified FROM Recipes WHERE visibility = \'public\')';
-        bookmark_query = bookmark_query.concat(', ', 'bookmarked_recipes AS (SELECT all_recipes.recipeId, title, serves, authorid, lastmodified FROM all_recipes JOIN (SELECT recipeId from Bookmarks WHERE chefId = \'', filteredResponse.chefId, '\') AS A ON all_recipes.recipeId = A.recipeId)');
+        let bookmark_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified, duration FROM Recipes WHERE visibility = \'public\')';
+        bookmark_query = bookmark_query.concat(', ', 'bookmarked_recipes AS (SELECT all_recipes.recipeId, title, serves, authorid, lastmodified, duration FROM all_recipes JOIN (SELECT recipeId from Bookmarks WHERE chefId = \'', filteredResponse.chefId, '\') AS A ON all_recipes.recipeId = A.recipeId)');
         bookmark_query = bookmark_query.concat(model.recipeListQueries('bookmarked_recipes', 'filtered_recipes'));
         bookmark_query = bookmark_query.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY lastmodified DESC)');
         bookmark_query = bookmark_query.concat(' ', 'SELECT * FROM sorted_recipes');
@@ -142,7 +142,7 @@ app.get('/chef/:id', (req, res) => {
             errorCaught = error;
           });
 
-        let recipes_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified FROM Recipes WHERE authorId = \'' + filteredResponse.chefId + '\')';
+        let recipes_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified, duration FROM Recipes WHERE authorId = \'' + filteredResponse.chefId + '\')';
         recipes_query = recipes_query.concat(model.recipeListQueries('all_recipes', 'filtered_recipes'));
         recipes_query = recipes_query.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY lastmodified DESC)');
         recipes_query = recipes_query.concat(' ', 'SELECT * FROM sorted_recipes');
@@ -204,20 +204,20 @@ app.post('/recipe', (req, res) => {
       .then(async response => {
         recipeId = response;
         await model.createRecipe(recipeId, req.body.title, parseInt(req.body.serves),
-          (req.body.isPublic ? 'public' : 'private'), session.userid)
+          (req.body.isPublic ? 'public' : 'private'), session.userid, parseInt(req.body.duration))
           .then(async response => {
-            await Promise.all(req.body.steps.map((step, i) =>
-              model.createStep(recipeId, i + 1, step.desc, step.duration)
-                .then(async response => {
-                  await Promise.all(step.ingredients.map((ingredient, j) =>
-                    model.createRequirement(recipeId, i + 1, j + 1, ingredient.id, ingredient.quantity)
-                      .catch(error => {
-                        errorCaught = error;
-                      })));
-                })
-                .catch(error => {
-                  errorCaught = error;
-                })));
+            await Promise.all([
+              await Promise.all(req.body.steps.map((step, i) =>
+                model.createStep(recipeId, i + 1, step.desc)
+                  .catch(error => {
+                    errorCaught = error;
+                  }))),
+              await Promise.all(req.body.ingredients.map((ingredient, j) =>
+                model.createRequirement(recipeId, ingredient.id, ingredient.quantity)
+                  .catch(error => {
+                    errorCaught = error;
+                  })))
+            ]);
           })
           .catch(error => {
             errorCaught = error;
@@ -282,21 +282,28 @@ app.post('/recipe/:id', (req, res) => {
             console.log(model.getDateTime(), 'POST: /recipe/:id', 403);
           } else {
             await model.updateRecipe(parseInt(reqRecipe.recipeid), req.body.title, parseInt(req.body.serves),
-              (req.body.isPublic ? 'public' : 'private'), session.userid)
+              (req.body.isPublic ? 'public' : 'private'), session.userid, parseInt(req.body.duration))
               .then(async response => {
                 await model.deleteSteps(parseInt(reqRecipe.recipeid))
                   .then(async response => {
-                    await Promise.all(req.body.steps.map((step, i) =>
-                      model.createStep(parseInt(reqRecipe.recipeid), i + 1, step.desc, step.duration)
-                        .then(async response =>
-                          await Promise.all(step.ingredients.map((ingredient, j) =>
-                            model.createRequirement(parseInt(reqRecipe.recipeid), i + 1, j + 1, ingredient.id, ingredient.quantity)
+                    await model.deleteRequirements(parseInt(reqRecipe.recipeid))
+                      .then(async response => {
+                        await Promise.all([
+                          await Promise.all(req.body.steps.map((step, i) =>
+                            model.createStep(parseInt(reqRecipe.recipeid), i + 1, step.desc)
                               .catch(error => {
                                 errorCaught = error;
-                              }))))
-                        .catch(error => {
-                          errorCaught = error;
-                        })));
+                              }))),
+                          await Promise.all(req.body.ingredients.map((ingredient, j) =>
+                            model.createRequirement(parseInt(reqRecipe.recipeid), ingredient.id, ingredient.quantity)
+                              .catch(error => {
+                                errorCaught = error;
+                              })))
+                        ]);
+                      })
+                      .catch(error => {
+                        errorCaught = error;
+                      })
                   })
                   .catch(error => {
                     errorCaught = error;
@@ -320,7 +327,7 @@ app.post('/recipe/:id', (req, res) => {
           res.status(404).send({ message: "Recipe not found" });
           console.log(model.getDateTime(), 'GET: /recipe/:id', 404);
         } else if (reqRecipe.authorid === session.userid) {
-          res.status(200).send({ message: "New recipe added" });
+          res.status(200).send({ message: "Recipe Updated" });
           console.log(model.getDateTime(), 'POST: /recipe/:id', 200);
         }
       });
@@ -379,7 +386,7 @@ app.post('/recipe/shop/:id', (req, res) => {
     model.getRequirementsByRecipe(parseInt(req.params.id))
       .then(async response =>
         await Promise.all(response.map(async (ingredient) => {
-          await model.updateShoppingListIngredient(session.userid, parseInt(ingredient.ingredientid), parseInt(Number(ingredient.sum)))
+          await model.updateShoppingListIngredient(session.userid, parseInt(ingredient.ingredientid), parseFloat(Number(ingredient.sum)))
             .catch(error => {
               errorCaught = error;
             })
@@ -400,7 +407,7 @@ app.post('/recipe/shop/:id', (req, res) => {
 app.get('/recipe', (req, res) => {
   session = req.session;
   // console.log(req.query);
-  let query_str = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified FROM Recipes WHERE visibility = \'public\')';
+  let query_str = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified, duration FROM Recipes WHERE visibility = \'public\')';
   // Applying Author filter
   if (req.query.author !== undefined) {
     let filter_author = req.query.author;
@@ -673,7 +680,7 @@ app.post('/shoppinglist/:id', (req, res) => {
   if (session.userid)
     model.deleteShoppingListIngredient(parseInt(req.params.id), session.userid)
       .then(async deleteResponse => {
-        await model.createShoppingListIngredient(parseInt(req.params.id), session.userid, parseInt(req.body.quantity))
+        await model.createShoppingListIngredient(parseInt(req.params.id), session.userid, parseFloat(req.body.quantity))
           .then(async createResponse => {
             res.status(200).send({ message: "New ingredient added in shopping list" });
             console.log(model.getDateTime(), 'POST: /shoppinglist/:id', 200);

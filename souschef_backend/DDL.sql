@@ -44,7 +44,7 @@ create TABLE Requirements
     (
         recipeId INT not null,
         ingredientId INT not null,
-        quantity INT not null,
+        quantity numeric(5,2) not null check (quantity > 0),
         primary key (recipeId, ingredientId),
         foreign key (recipeId) references Recipes on delete cascade,
         foreign key (ingredientId) references Ingredients on delete set null
@@ -90,7 +90,7 @@ create TABLE ShoppingList
     (
         chefId VARCHAR(40) not null,
         ingredientId INT not null,
-        quantity INT check (quantity > 0),
+        quantity numeric(5,2) check (quantity > 0),
         primary key (chefId,ingredientId),
         foreign key (chefId) references Chefs on delete cascade,
         foreign key (ingredientId) references Ingredients on delete cascade

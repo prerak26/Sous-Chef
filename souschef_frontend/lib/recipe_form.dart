@@ -251,7 +251,7 @@ class _RecipeFormState extends State<RecipeForm> {
                           _ingredientController.text =
                               '${k.join(',')},${sugesstion.name},';
                           Ingredient sub = sugesstion;
-                          sub.quantity = int.parse(_qunatitycontroller.text);
+                          sub.quantity = double.parse(_qunatitycontroller.text);
                           ingredientsub.add(sub);
                         });
                       },

@@ -88,9 +88,8 @@ const getRecipes = (query_str) => {
 
 const recipeListQueries = (in_table, out_table) => {
   query_str = '';
-  query_str = query_str.concat(', ', 'rating_recipes AS (SELECT ', in_table, '.recipeId AS recipeid, title, serves, authorid, lastmodified, averagerating, ratingsum, ratingtotal, stddev FROM ', in_table, ' LEFT JOIN (SELECT recipeId, AVG(rating) AS averageRating, SUM(rating) AS ratingSum, COUNT(chefId) AS ratingTotal, STDDEV(rating) FROM Ratings GROUP BY recipeId) AS A ON ', in_table, '.recipeId = A.recipeId)');
-  query_str = query_str.concat(', ', 'hot_rating_recipes AS (SELECT rating_recipes.recipeId AS recipeid, title, serves, authorid, lastmodified, averagerating, ratingsum, ratingtotal, stddev, hotRating, hotTotal FROM rating_recipes LEFT JOIN (SELECT recipeId, avg(rating) AS hotRating, count(chefId) AS hotTotal FROM Ratings WHERE now() - lastModified  < interval \'1 day\' GROUP BY recipeId) AS A ON rating_recipes.recipeId = A.recipeId)');
-  query_str = query_str.concat(', ', out_table, ' AS (SELECT * FROM hot_rating_recipes JOIN (SELECT recipeId, sum(duration) AS totalTime FROM Steps GROUP BY recipeId) AS A ON hot_rating_recipes.recipeId = A.recipeId)');
+  query_str = query_str.concat(', ', 'rating_recipes AS (SELECT ', in_table, '.recipeId AS recipeid, title, serves, authorid, lastmodified, duration, averagerating, ratingsum, ratingtotal, stddev FROM ', in_table, ' LEFT JOIN (SELECT recipeId, AVG(rating) AS averageRating, SUM(rating) AS ratingSum, COUNT(chefId) AS ratingTotal, STDDEV(rating) FROM Ratings GROUP BY recipeId) AS A ON ', in_table, '.recipeId = A.recipeId)');
+  query_str = query_str.concat(', ', out_table, ' AS (SELECT rating_recipes.recipeId AS recipeid, title, serves, authorid, lastmodified, duration, averagerating, ratingsum, ratingtotal, stddev, hotRating, hotTotal FROM rating_recipes LEFT JOIN (SELECT recipeId, avg(rating) AS hotRating, count(chefId) AS hotTotal FROM Ratings WHERE now() - lastModified  < interval \'1 day\' GROUP BY recipeId) AS A ON rating_recipes.recipeId = A.recipeId)');
   return query_str;
 }
 
@@ -113,11 +112,11 @@ const getDateTime = () => {
     now.getMilliseconds();
 }
 
-const createRecipe = (recipeId, title, serves, visibility, authorId) => {
+const createRecipe = (recipeId, title, serves, visibility, authorId, duration) => {
   const LASTMODIFIED = getDateTime();
   return new Promise((resolve, reject) => {
-    pool.query('INSERT INTO Recipes (recipeId, title, serves, visibility, authorId, lastModified) VALUES ($1, $2, $3, $4, $5, $6)',
-      [recipeId, title, serves, visibility, authorId, LASTMODIFIED], (error, results) => {
+    pool.query('INSERT INTO Recipes (recipeId, title, serves, visibility, authorId, lastModified, duration) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [recipeId, title, serves, visibility, authorId, LASTMODIFIED, duration], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -126,11 +125,11 @@ const createRecipe = (recipeId, title, serves, visibility, authorId) => {
   })
 }
 
-const updateRecipe = (recipeId, title, serves, visibility, authorId) => {
+const updateRecipe = (recipeId, title, serves, visibility, authorId, duration) => {
   const LASTMODIFIED = getDateTime();
   return new Promise((resolve, reject) => {
-    pool.query('UPDATE Recipes SET "title" = $2, "serves" = $3, "visibility" = $4, "lastmodified" = $5 WHERE "recipeid" = $1',
-      [recipeId, title, serves, visibility, LASTMODIFIED], (error, results) => {
+    pool.query('UPDATE Recipes SET "title" = $2, "serves" = $3, "visibility" = $4, "lastmodified" = $5, "duration" = $6 WHERE "recipeid" = $1',
+      [recipeId, title, serves, visibility, LASTMODIFIED, duration], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -138,7 +137,6 @@ const updateRecipe = (recipeId, title, serves, visibility, authorId) => {
       })
   })
 }
-
 
 const deleteRecipe = (recipeId) => {
   return new Promise((resolve, reject) => {
@@ -151,10 +149,10 @@ const deleteRecipe = (recipeId) => {
   })
 }
 
-const createStep = (recipeId, stepNumber, desc, duration) => {
+const createStep = (recipeId, stepNumber, desc) => {
   return new Promise((resolve, reject) => {
-    pool.query('INSERT INTO Steps (recipeId, stepNumber, description, duration) VALUES ($1, $2, $3, $4)',
-      [recipeId, stepNumber, desc, duration], (error, results) => {
+    pool.query('INSERT INTO Steps (recipeId, stepNumber, description) VALUES ($1, $2, $3)',
+      [recipeId, stepNumber, desc], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -175,10 +173,22 @@ const deleteSteps = (recipeId) => {
   })
 }
 
-const createRequirement = (recipeId, stepNumber, serialNumber, ingredientId, quantity) => {
+const createRequirement = (recipeId, ingredientId, quantity) => {
   return new Promise((resolve, reject) => {
-    pool.query('INSERT INTO Requirements (recipeId, stepNumber, serialNumber, ingredientId, quantity) VALUES ($1, $2, $3, $4, $5)',
-      [recipeId, stepNumber, serialNumber, ingredientId, quantity], (error, results) => {
+    pool.query('INSERT INTO Requirements (recipeId, ingredientId, quantity) VALUES ($1, $2, $3)',
+      [recipeId, ingredientId, quantity], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const deleteRequirements = (recipeId) => {
+  return new Promise((resolve, reject) => {
+    pool.query('DELETE FROM Requirements WHERE recipeid=$1',
+      [recipeId], (error, results) => {
         if (error)
           reject(error);
         if (results)
@@ -230,6 +240,7 @@ const rateRecipe = (chefid, recipeId, rating) => {
       })
   })
 }
+
 const unrateRecipe = (chefid, recipeId) => {
   const CHEFID = chefid;
   const RECIPEID = recipeId;
@@ -409,6 +420,7 @@ module.exports = {
   createStep,
   deleteSteps,
   createRequirement,
+  deleteRequirements,
   getDateTime,
   getShoppingList,
   createBookmark,

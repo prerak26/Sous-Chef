@@ -37,7 +37,7 @@ class _ShoppingListViewState extends State<ShoppingListView> {
     List<Ingredient> shoppingList = body
         .map((e) => Ingredient(
             id: e["ingredientid"],
-            quantity: e["quantity"],
+            quantity: double.parse(e["quantity"]),
             name: e["name"],
             kind: e["kind"]))
         .toList();
@@ -51,7 +51,7 @@ class _ShoppingListViewState extends State<ShoppingListView> {
     List<Ingredient> suggestedIngredients = body
         .map((e) => Ingredient(
             id: e["ingredientid"],
-            quantity: 0,
+            quantity: 0.0,
             kind: e["kind"],
             name: e["name"]))
         .toList();
@@ -196,7 +196,9 @@ class _ShoppingListViewState extends State<ShoppingListView> {
           child: TextFormField(
             controller: _newItemQuantity,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'(^\d*\.?\d*)'))
+            ],
             decoration: const InputDecoration(
               hintText: 'Enter quantity',
               border: OutlineInputBorder(),
@@ -210,7 +212,7 @@ class _ShoppingListViewState extends State<ShoppingListView> {
               if (_newItemId != -1 && _newItemQuantity.text != "") {
                 if ((await _saveItem(Ingredient(
                         id: _newItemId,
-                        quantity: int.parse(_newItemQuantity.text),
+                        quantity: double.parse(_newItemQuantity.text),
                         kind: "",
                         name: _newItemName.text))) ==
                     200) {

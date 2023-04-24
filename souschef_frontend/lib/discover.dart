@@ -19,20 +19,15 @@ class _DiscoverViewState extends State<DiscoverView> {
 
     List<dynamic> jsonData = jsonDecode(response.body);
     List<Cards> cards = jsonData.map((recipeData) {
-      
       return Cards(
           title: recipeData['title'],
           serves: recipeData['serves'],
           authorid: recipeData['authorid'],
           recipeid: recipeData['recipeid'],
           rating: recipeData['averagerating'],
-          totalTime: recipeData['totaltime']
-
-          );
-          
-
+          duration: recipeData['duration']);
     }).toList();
-    print(jsonData[0]);
+    // print(jsonData[0]);
     return cards;
   }
 
@@ -40,8 +35,6 @@ class _DiscoverViewState extends State<DiscoverView> {
     Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
   }
-
-  
 
   @override
   Widget build(BuildContext context) {

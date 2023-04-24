@@ -19,13 +19,14 @@ class _DiscoverViewState extends State<DiscoverView> {
 
     List<dynamic> jsonData = jsonDecode(response.body);
     List<Cards> cards = jsonData.map((recipeData) {
+      
       return Cards(
           title: recipeData['title'],
           serves: recipeData['serves'],
           authorid: recipeData['authorid'],
           recipeid: recipeData['recipeid'],
-          //rating: recipeData['averagerating'],
-          //totalTime: recipeData['totaltime'],
+          rating: recipeData['averagerating'],
+          totalTime: recipeData['totaltime']
 
           );
           

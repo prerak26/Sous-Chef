@@ -77,15 +77,15 @@ class Cards {
   String title;
   int serves;
   String authorid;
-  //double rating;
-  //int totalTime;
+  double? rating;
+  String totalTime;
   Cards(
       {required this.recipeid,
       required this.title,
       required this.serves,
       required this.authorid,
-      //required this.rating,
-      //required this.totalTime,
+      this.rating,
+      required this.totalTime,
       });
 }
 

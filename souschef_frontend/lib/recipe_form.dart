@@ -21,7 +21,6 @@ class _RecipeFormState extends State<RecipeForm> {
   final _servesController = TextEditingController();
   final _instcontroller = TextEditingController();
   final _durationcontroller = TextEditingController();
-  
 
   List<String> _suggestions = [];
 
@@ -45,7 +44,7 @@ class _RecipeFormState extends State<RecipeForm> {
   }
 
   Future<List<Tag>> _fetchSuggestions(String query) async {
-    final String apiUrl = 'http://localhost:3001/tag?key=$query';
+    final String apiUrl = '/tag?key=$query';
     final response = await currSession.get(apiUrl);
     if (response.statusCode == 200) {
       List<dynamic> t = jsonDecode(response.body);
@@ -66,10 +65,8 @@ class _RecipeFormState extends State<RecipeForm> {
     }
   }
 
-
-
   Future<void> _addTag(String value) async {
-    const String apiUrl = 'http://localhost:3001/tag';
+    const String apiUrl = '/tag';
     final response =
         await currSession.post(apiUrl, json.encode({'name': value}));
     if (response.statusCode == 200) {
@@ -78,17 +75,16 @@ class _RecipeFormState extends State<RecipeForm> {
     }
   }
 
-      Future<List<Ingredient>> _fetchIngredients(String query) async {
-    final String apiUrl = 'http://localhost:3001/ingredient?key=$query';
-
+  Future<List<Ingredient>> _fetchIngredients(String query) async {
+    final String apiUrl = '/ingredient?key=$query';
     final response = await currSession.get(apiUrl);
-    
+
     if (response.statusCode == 200) {
       List<dynamic> t = jsonDecode(response.body);
       print(t);
       List<Ingredient> l = t.map((ingredientData) {
         return Ingredient(
-          id : ingredientData['ingredientid'],
+          id: ingredientData['ingredientid'],
           name: ingredientData['name'],
           kind: ingredientData['kind'],
         );
@@ -98,21 +94,18 @@ class _RecipeFormState extends State<RecipeForm> {
       l.add(def);
 
       return l;
-    } 
-    else {
+    } else {
       throw Exception('Failed to load suggestions');
     }
   }
- 
-  Future<void> _addIngredient(String value , String value1) async {
-    const String apiUrl = 'http://localhost:3001/ingredient';
+
+  Future<void> _addIngredient(String value, String _kind) async {
+    const String apiUrl = '/ingredient';
     final response = await currSession.post(
-        apiUrl, json.encode({'name': value, 'kind': value1}));
+        apiUrl, json.encode({'name': value, 'kind': _kind}));
     //print(response);
     if (response.statusCode == 200) {
-
-    } 
-    else {
+    } else {
       throw Exception('Failed to add new value');
     }
   }
@@ -120,8 +113,10 @@ class _RecipeFormState extends State<RecipeForm> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _ingredientController = TextEditingController();
   final TextEditingController _qunatitycontroller = TextEditingController();
-  final TextEditingController _ingredientNameController= TextEditingController();
-  final TextEditingController _ingredientKindController= TextEditingController();
+  final TextEditingController _ingredientNameController =
+      TextEditingController();
+  final TextEditingController _ingredientKindController =
+      TextEditingController();
   String selectedIngredient = "";
   String selectedtag = "";
 
@@ -132,7 +127,7 @@ class _RecipeFormState extends State<RecipeForm> {
   //final list of tags and ingredients to be posted
   List<Tag> tagsub = [];
   List<Ingredient> ingredientsub = [];
-  
+
   // tag auto complete widget
   Widget tagcomp(BuildContext context) {
     List<String> k;
@@ -145,10 +140,7 @@ class _RecipeFormState extends State<RecipeForm> {
                   .style
                   .copyWith(fontStyle: FontStyle.italic),
               decoration: const InputDecoration(
-                labelText: 'Tags',
-                
-                border: OutlineInputBorder())
-                ),
+                  labelText: 'Tags', border: OutlineInputBorder())),
           suggestionsCallback: (pattern) async {
             k = pattern.split(',');
 
@@ -162,9 +154,6 @@ class _RecipeFormState extends State<RecipeForm> {
           onSuggestionSelected: (sugesstion) {
             if (sugesstion.tagid != -1) {
               setState(() {
-
-
-
                 k = _searchController.text.split(',');
 
                 k.removeLast();
@@ -211,10 +200,7 @@ class _RecipeFormState extends State<RecipeForm> {
                   .style
                   .copyWith(fontStyle: FontStyle.italic),
               decoration: const InputDecoration(
-                labelText: 'Ingredients',
-                
-                border: OutlineInputBorder())
-                ),
+                  labelText: 'Ingredients', border: OutlineInputBorder())),
           suggestionsCallback: (pattern) async {
             k = pattern.split(',');
 
@@ -231,24 +217,22 @@ class _RecipeFormState extends State<RecipeForm> {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Add new value?'),
-                  content: Column(
-                    children: [
-                      TextFormField(
-                        controller: _qunatitycontroller,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        autofocus: true,
-                        decoration: InputDecoration(
-                            labelText: 'Quantity in ${sugesstion.kind}'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a quantity';
-                          }
-                          return null;
-                        },
-                        
+                  content: Column(children: [
+                    TextFormField(
+                      controller: _qunatitycontroller,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      autofocus: true,
+                      decoration: InputDecoration(
+                          labelText: 'Quantity in ${sugesstion.kind}'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a quantity';
+                        }
+                        return null;
+                      },
                     ),
                   ]),
                   actions: [
@@ -262,62 +246,49 @@ class _RecipeFormState extends State<RecipeForm> {
                         Navigator.of(context).pop();
 
                         setState(() {
-                        k = _ingredientController.text.split(',');
-                        k.removeLast();
-                        _ingredientController.text = '${k.join(',')},${sugesstion.name},';
-                        Ingredient sub = sugesstion;
-                        sub.quantity = int.parse(_qunatitycontroller.text);
-                        ingredientsub.add(sub);
-                    });
+                          k = _ingredientController.text.split(',');
+                          k.removeLast();
+                          _ingredientController.text =
+                              '${k.join(',')},${sugesstion.name},';
+                          Ingredient sub = sugesstion;
+                          sub.quantity = int.parse(_qunatitycontroller.text);
+                          ingredientsub.add(sub);
+                        });
                       },
                     ),
                   ],
                 ),
               );
-
-              
-            
-            } 
-            else {
+            } else {
               k = _ingredientController.text.split(',');
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Add new value?'),
-                  content:Column(
-                    children: [
-                      
-                        TextFormField(
-                        controller: _ingredientNameController,
-                        
-                        autofocus: true,
-                        decoration: const InputDecoration(
-                            labelText: 'Name'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter name of the ingredient';
-                          }
-                          return null;
-                        },
-                        
-                    ),  
-
-                      TextFormField(
-                        controller: _ingredientKindController,
-                        
-                        
-                        autofocus: true,
-                        decoration: const InputDecoration(
-                            labelText: 'Kind of ingredient'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter kind for the ingredient';
-                          }
-                          return null;
-                        },
-                        
+                  content: Column(children: [
+                    TextFormField(
+                      controller: _ingredientNameController,
+                      autofocus: true,
+                      decoration: const InputDecoration(labelText: 'Name'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter name of the ingredient';
+                        }
+                        return null;
+                      },
                     ),
-
+                    TextFormField(
+                      controller: _ingredientKindController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                          labelText: 'Kind of ingredient'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter kind for the ingredient';
+                        }
+                        return null;
+                      },
+                    ),
                   ]),
                   actions: [
                     TextButton(
@@ -329,11 +300,11 @@ class _RecipeFormState extends State<RecipeForm> {
                       onPressed: () {
                         Navigator.of(context).pop();
 
-                        _addIngredient(_ingredientNameController.text,_ingredientKindController.text);
+                        _addIngredient(_ingredientNameController.text,
+                            _ingredientKindController.text);
                         _ingredientNameController.text = "";
                         _ingredientKindController.text = "";
                         //_ingredientController.text = '${k.join(',')},';
-
                       },
                     ),
                   ],
@@ -343,9 +314,10 @@ class _RecipeFormState extends State<RecipeForm> {
           }),
     ]);
   }
+
   Recipe recipe =
       Recipe(title: "", serves: 0, isPublic: true, steps: [], tags: []);
-  
+
   void _saveRecipe() async {
     if (_formKey.currentState!.validate()) {
       List<Tag> tags = [];
@@ -362,8 +334,8 @@ class _RecipeFormState extends State<RecipeForm> {
       recipe.steps = _instructions;
       recipe.tags = tags;
 
-      var response = await currSession.post(
-          'http://localhost:3001/recipe', jsonEncode(recipe.toJson()));
+      var response =
+          await currSession.post('/recipe', jsonEncode(recipe.toJson()));
       if (response.statusCode == 200) {
         Navigator.pop(context);
       }
@@ -401,8 +373,8 @@ class _RecipeFormState extends State<RecipeForm> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Serves'),
                 inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.digitsOnly
-                                ],
+                  FilteringTextInputFormatter.digitsOnly
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter number of people the dish serves';
@@ -434,14 +406,12 @@ class _RecipeFormState extends State<RecipeForm> {
                 ],
               ),
               const SizedBox(height: 16),
-              
-              
+
               Text(
                 'Instructions',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
-
 
               ListView.builder(
                 shrinkWrap: true,
@@ -546,8 +516,8 @@ class _RecipeFormState extends State<RecipeForm> {
                                               ingredients: []);
                                           setState(() {
                                             _instructions.add(S);
-                                          });    
-                                          
+                                          });
+
                                           _instcontroller.text = "";
                                           Navigator.pop(context);
                                         }
@@ -559,11 +529,9 @@ class _RecipeFormState extends State<RecipeForm> {
                             );
                           },
                         );
-                        
                       },
                     );
-                  } 
-                  else {
+                  } else {
                     print(_instructions);
                     return ListTile(
                       title: Text(_instructions[index].desc),

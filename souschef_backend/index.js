@@ -701,7 +701,7 @@ app.post('/shoppinglist/:id', (req, res) => {
 app.delete('/shoppinglist/:id', (req, res) => {
   session = req.session;
   if (session.userid)
-    model.deleteShoppingListIngredient(parseInt(req.params.id), session.userid, parseInt(req.body.quantity))
+    model.deleteShoppingListIngredient(parseInt(req.params.id), session.userid)
       .then(response => {
         res.status(200).send({ message: "Ingredient deleted" });
         console.log(model.getDateTime(), 'DELETE: /shoppinglist/:id', 200);

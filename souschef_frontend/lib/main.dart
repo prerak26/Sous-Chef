@@ -82,25 +82,27 @@ Globals session = Globals(isLogged: false, id: "", pswd: "");
 class Session {
   Map<String, String> headers;
   Session({required this.headers});
+  String baseUrl = "http://192.168.0.107:3001";
 
-  Future<http.Response> get(String url) async {
-    http.Response response = await http.get(Uri.parse(url), headers: headers);
-    updateCookie(response);
-    return response;
-  }
-
-  Future<http.Response> delete(String url) async {
+  Future<http.Response> get(String path) async {
     http.Response response =
-        await http.delete(Uri.parse(url), headers: headers);
+        await http.get(Uri.parse(baseUrl + path), headers: headers);
     updateCookie(response);
     return response;
   }
 
-  Future<http.Response> post(String url, dynamic data) async {
+  Future<http.Response> delete(String path) async {
+    http.Response response =
+        await http.delete(Uri.parse(baseUrl + path), headers: headers);
+    updateCookie(response);
+    return response;
+  }
+
+  Future<http.Response> post(String path, dynamic data) async {
     headers['Content-Type'] = 'application/json';
     headers['charset'] = 'UTF-8';
-    http.Response response =
-        await http.post(Uri.parse(url), body: data, headers: headers);
+    http.Response response = await http.post(Uri.parse(baseUrl + path),
+        body: data, headers: headers);
     updateCookie(response);
     return response;
   }

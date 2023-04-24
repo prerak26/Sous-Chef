@@ -20,8 +20,7 @@ class _HomeViewState extends State<HomeView> {
   // ignore: prefer_typing_uninitialized_variables
   var response;
   Future<User> gethomeinfo() async {
-    response =
-        await currSession.get("http://localhost:3001/chef/${session.id}");
+    response = await currSession.get("/chef/${session.id}");
 
     var body = json.decode(response.body);
     User user = User(chefid: body["chefId"], name: body["name"]);

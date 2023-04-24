@@ -42,7 +42,7 @@ class _LoginViewState extends State<LoginView> {
 
   void _login() async {
     var response = await currSession.post(
-        'http://localhost:3001/login',
+        '/login',
         json.encode({
           'id': _usernameController.text,
           'pswd': _passwordController.text,

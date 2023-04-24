@@ -5,10 +5,10 @@ import 'package:http/http.dart';
 import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/recipe.dart';
 
-class DiscoverPage extends StatefulWidget {
-  const DiscoverPage({super.key});
+class DiscoverView extends StatefulWidget {
+  const DiscoverView({super.key});
   @override
-  State<DiscoverPage> createState() => _DiscoverPageState();
+  State<DiscoverView> createState() => _DiscoverViewState();
 }
 
 class Cards {
@@ -23,11 +23,11 @@ class Cards {
       required this.authorid});
 }
 
-class _DiscoverPageState extends State<DiscoverPage> {
+class _DiscoverViewState extends State<DiscoverView> {
   late Response response;
 
   Future<List<Cards>> gethomeinfo() async {
-    response = await currSession.get("http://localhost:3001/recipe");
+    response = await currSession.get("/recipe");
 
     List<dynamic> jsonData = jsonDecode(response.body);
     List<Cards> cards = jsonData.map((recipeData) {

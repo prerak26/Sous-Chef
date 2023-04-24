@@ -29,10 +29,10 @@ class _ShoppingListViewState extends State<ShoppingListView> {
   final _newItemName = TextEditingController();
   final _newItemQuantity = TextEditingController();
   int _newItemId = -1;
+  bool _latest = false;
 
   Future<List<Ingredient>> _fetchShoppingList() async {
-    Response response =
-        await currSession.get("http://localhost:3001/shoppinglist");
+    Response response = await currSession.get("/shoppinglist");
     List<dynamic> body = json.decode(response.body);
     List<Ingredient> shoppingList = body
         .map((e) => Ingredient(
@@ -41,12 +41,12 @@ class _ShoppingListViewState extends State<ShoppingListView> {
             name: e["name"],
             kind: e["kind"]))
         .toList();
+    _latest = true;
     return shoppingList;
   }
 
-  Future<List<Ingredient>> _fetchIngredientList(query) async {
-    Response response =
-        await currSession.get("http://localhost:3001/ingredient?key=$query");
+  Future<List<Ingredient>> _fetchSuggestions(query) async {
+    Response response = await currSession.get("/ingredient?key=$query");
     List<dynamic> body = json.decode(response.body);
     List<Ingredient> suggestedIngredients = body
         .map((e) => Ingredient(
@@ -60,8 +60,12 @@ class _ShoppingListViewState extends State<ShoppingListView> {
 
   Future<int> _saveItem(Ingredient item) async {
     Response response = await currSession.post(
-        "http://localhost:3001/shoppinglist/${item.id}",
-        jsonEncode(item.toJson()));
+        "/shoppinglist/${item.id}", jsonEncode(item.toJson()));
+    return response.statusCode;
+  }
+
+  Future<int> _removeItem(Ingredient item) async {
+    Response response = await currSession.delete("/shoppinglist/${item.id}");
     return response.statusCode;
   }
 
@@ -97,19 +101,67 @@ class _ShoppingListViewState extends State<ShoppingListView> {
         padding: const EdgeInsets.all(8),
         itemCount: items.length,
         itemBuilder: (BuildContext context, int index) {
-          Ingredient item = items[index];
           return Container(
-            height: 50,
             color: Colors.amber,
             child: Center(
-                child: item.kind == "whole"
-                    ? Text('${item.quantity} ${item.name}')
-                    : Text('${item.quantity} ${item.kind} of ${item.name}')),
+              child: _shoppingListItem(items[index]),
+            ),
           );
         },
         separatorBuilder: (BuildContext context, int index) => const Divider(),
       ),
     );
+  }
+
+  Widget _shoppingListItem(item) {
+    return Row(children: [
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: RichText(
+          text: TextSpan(
+            style: const TextStyle(
+              fontSize: 20.0,
+              color: Colors.black,
+            ),
+            children: <TextSpan>[
+              TextSpan(
+                  text: item.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: ', ${item.quantity} ${item.kind}')
+            ],
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () async {
+            if (await _removeItem(item) == 200) {
+              setState(() {
+                _latest = false;
+              });
+            } else if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Failed to delete item.'),
+              ));
+            }
+          },
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () {
+            setState(() {
+              _newItemId = item.id;
+              _newItemName.text = item.name;
+            });
+          },
+        ),
+      ),
+    ]);
   }
 
   Widget _newItemWidget() {
@@ -121,18 +173,16 @@ class _ShoppingListViewState extends State<ShoppingListView> {
             textFieldConfiguration: TextFieldConfiguration(
               controller: _newItemName,
               decoration: const InputDecoration(
-                hintText: 'Add new ingredient',
+                hintText: 'Enter ingredient',
                 border: OutlineInputBorder(),
               ),
             ),
             suggestionsCallback: (pattern) async {
-              return await _fetchIngredientList(pattern);
+              return await _fetchSuggestions(pattern);
             },
             itemBuilder: (context, itemData) {
               return ListTile(
-                title: itemData.kind == "whole"
-                    ? Text("${itemData.name} as ${itemData.kind}")
-                    : Text("${itemData.name} in ${itemData.kind}"),
+                title: Text("${itemData.name} in ${itemData.kind}"),
               );
             },
             onSuggestionSelected: (suggestion) {
@@ -171,12 +221,12 @@ class _ShoppingListViewState extends State<ShoppingListView> {
                   });
                 } else if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Failed to add item'),
+                    content: Text('Failed to add item.'),
                   ));
                 }
               }
             },
-            child: const Text("Add Item"),
+            child: const Text("Add/Edit Item"),
           ),
         ),
       ]),

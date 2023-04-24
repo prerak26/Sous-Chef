@@ -19,7 +19,7 @@ class _SignupViewState extends State<SignupView> {
 
   void _registerUser() async {
     var response = await currSession.post(
-        'http://localhost:3001/signup',
+        '/signup',
         json.encode({
           'name': _nameController.text,
           'id': _idController.text,

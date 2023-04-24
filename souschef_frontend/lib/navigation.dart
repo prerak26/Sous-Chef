@@ -70,7 +70,7 @@ class _NavigationViewState extends State<NavigationView> {
         controller: _controller,
         screens: const [
           HomeView(),
-          DiscoverPage(),
+          DiscoverView(),
           ShoppingListView(),
         ],
         items: _navBarItems(),

@@ -11,21 +11,15 @@ class RecipePage extends StatefulWidget {
   State<RecipePage> createState() => _RecipePageState();
 }
 
-
-
 class _RecipePageState extends State<RecipePage> {
-  
-  Future<Map<String,dynamic>> _fetchrecipe() async {
-    
+  Future<Map<String, dynamic>> _fetchrecipe() async {
     final String apiUrl = '/recipe/${widget.recipeId}';
     final response = await currSession.get(apiUrl);
     if (response.statusCode == 200) {
-      
       dynamic t = jsonDecode(response.body);
-      
+
       print(t);
       return t;
-      
     } else {
       throw Exception('Failed to load suggestions');
     }
@@ -33,7 +27,7 @@ class _RecipePageState extends State<RecipePage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String,dynamic>>(
+    return FutureBuilder<Map<String, dynamic>>(
         future: _fetchrecipe(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
@@ -41,12 +35,11 @@ class _RecipePageState extends State<RecipePage> {
               appBar: AppBar(
                 title: Text("${snapshot.data!['title']}"),
               ),
-              
+               
             );
           } else {
             return const CircularProgressIndicator();
           }
         });
   }
-
 }

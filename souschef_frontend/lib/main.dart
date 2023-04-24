@@ -4,17 +4,20 @@ import 'package:souschef_frontend/route_generator.dart';
 
 class Ingredient {
   int id;
-  int quantity;
+  int? quantity = 0;
   String name;
-  String kind;
+  String? kind = "gram";
   Ingredient(
       {required this.id,
-      required this.quantity,
+      this.quantity,
       required this.name,
-      required this.kind});
+      this.kind}
+    );
   Map<String, dynamic> toJson() => {
         'id': id,
         'quantity': quantity,
+        'kind' : kind,
+        'name' : name,
       };
 }
 

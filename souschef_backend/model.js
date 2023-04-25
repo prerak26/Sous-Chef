@@ -68,7 +68,6 @@ const getRecipe = (id) => {
   query_str = query_str.concat(recipeListQueries('one_recipe', 'final_recipe'));
   query_str = query_str.concat(', ', 'final_final_recipe AS (SELECT * FROM final_recipe NATURAL JOIN (SELECT recipeId, count(stepNumber) as stepcount FROM Steps GROUP BY (recipeId)) AS A)');
   query_str = query_str.concat(' ', 'SELECT * FROM final_final_recipe');
-  console.log(query_str);
   return new Promise((resolve, reject) => {
     pool.query(query_str, [], (error, results) => {
       if (error)
@@ -446,7 +445,7 @@ const getChefByKey = (key, lim) => {
 const getRecipeByKey = (key, lim) => {
   const searchKey = key + '%';
   return new Promise((resolve, reject) => {
-    pool.query('SELECT * FROM Recipes WHERE name like $1 limit $2',
+    pool.query('SELECT DISTINCT title FROM Recipes WHERE title like $1 limit $2',
       [searchKey, lim], (error, results) => {
         if (error)
           reject(error);

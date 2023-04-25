@@ -252,14 +252,14 @@ app.get('/recipe/:id', (req, res) => {
         reqRecipe = response[0];
         if (reqRecipe.visibility === 'private' && session.userid !== reqRecipe.authorid) {
         } else {
-          await Promis.all([
+          await Promise.all([
             model.getRecipeTags(reqRecipe.recipeid)
               .then(response => {
                 reqRecipe.tags = response;
               }).catch(error => {
                 errorCaught = error;
               }),
-            model.getRecipeRequirements(reqrecipe.recipeid)
+            model.getRecipeRequirements(reqRecipe.recipeid)
               .then(response => {
                 reqRecipe.requirements = response;
               }).catch(error => {
@@ -591,7 +591,7 @@ app.get('/ingredient', (req, res) => {
 });
 
 // Get tags list by query [Query tags view]
-app.get('/recipe/names', (req, res) => {
+app.get('/recipes', (req, res) => {
   if (req.query.key === undefined)
     req.query.key = "";
   if (req.query.lim === undefined)
@@ -599,7 +599,7 @@ app.get('/recipe/names', (req, res) => {
   if (parseInt(req.query.lim).toString() !== 'NaN') {
     model.getRecipeByKey(req.query.key, parseInt(req.query.lim))
       .then(response => {
-        res.status(200).send(response);
+        res.status(200).send(response.map(recipe => recipe.title));
         console.log(model.getDateTime(), 'GET: /recipe/names', 200);
       })
       .catch(error => {

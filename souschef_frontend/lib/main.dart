@@ -19,17 +19,14 @@ class Ingredient {
 }
 
 class Instruction {
-  int duration;
+  
   String desc;
-  List<Ingredient> ingredients = [];
+  
   Instruction(
-      {required this.duration, required this.desc, required this.ingredients});
+      {required this.desc});
   Map<String, dynamic> toJson() => {
-        'duration': duration,
-        'desc': desc,
-        'ingredients':
-            ingredients.map((ingredient) => ingredient.toJson()).toList(),
-      };
+    'desc': desc,
+  };
 }
 
 class Recipe {
@@ -38,18 +35,26 @@ class Recipe {
   bool isPublic = false;
   List<Instruction> steps = [];
   List<Tag> tags = [];
+  List<Ingredient> ingredients = [];
+  int duration;
+
   Recipe(
       {required this.title,
       required this.serves,
       required this.isPublic,
       required this.steps,
-      required this.tags});
+      required this.tags,
+      required this.ingredients,
+      required this.duration,
+      });
   Map<String, dynamic> toJson() => {
         'title': title,
         'serves': serves,
         'isPublic': isPublic,
         'steps': steps.map((step) => step.toJson()).toList(),
         'tags': tags.map((tag) => tag.toJson()).toList(),
+        'ingredients' : ingredients.map((ingredient) => ingredient.toJson()).toList(),
+        'duration' : duration,
       };
 }
 

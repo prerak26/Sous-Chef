@@ -24,24 +24,7 @@ class _RecipeFormState extends State<RecipeForm> {
 
   List<String> _suggestions = [];
 
-  void _getSuggestions(String text) async {
-    if (text.contains("@")) {
-      // Replace this with your API call to get the suggestions.
-      // String apiUrl = "https://example.com/suggestions?query=$text";
-      var response =
-          await currSession.get('https://example.com/suggestions?query=$text');
-      List<dynamic> suggestionsJson = json.decode(response.body);
-      List<String> suggestions = suggestionsJson.cast<String>().toList();
 
-      setState(() {
-        _suggestions = suggestions;
-      });
-    } else {
-      setState(() {
-        _suggestions = [];
-      });
-    }
-  }
 
   Future<List<Tag>> _fetchSuggestions(String query) async {
     final String apiUrl = '/tag?key=$query';
@@ -81,7 +64,7 @@ class _RecipeFormState extends State<RecipeForm> {
 
     if (response.statusCode == 200) {
       List<dynamic> t = jsonDecode(response.body);
-      print(t);
+
       List<Ingredient> l = t.map((ingredientData) {
         return Ingredient(
           id: ingredientData['ingredientid'],
@@ -99,10 +82,11 @@ class _RecipeFormState extends State<RecipeForm> {
     }
   }
 
-  Future<void> _addIngredient(String value, String _kind) async {
+  Future<void> _addIngredient(String value, String kind) async {
     const String apiUrl = '/ingredient';
+    print(json.encode({'name': value, 'kind': kind}));
     final response = await currSession.post(
-        apiUrl, json.encode({'name': value, 'kind': _kind}));
+        apiUrl, json.encode({'name': value, 'kind': kind}));
     //print(response);
     if (response.statusCode == 200) {
     } else {
@@ -315,8 +299,14 @@ class _RecipeFormState extends State<RecipeForm> {
     ]);
   }
 
-  Recipe recipe =
-      Recipe(title: "", serves: 0, isPublic: true, steps: [], tags: []);
+  Recipe recipe = Recipe(
+      title: "",
+      serves: 0,
+      isPublic: true,
+      steps: [],
+      tags: [],
+      ingredients: [],
+      duration: 0);
 
   void _saveRecipe() async {
     if (_formKey.currentState!.validate()) {
@@ -333,11 +323,16 @@ class _RecipeFormState extends State<RecipeForm> {
       recipe.serves = int.parse(_servesController.text);
       recipe.steps = _instructions;
       recipe.tags = tags;
-
+      recipe.ingredients = ingredientsub;
+      recipe.duration = int.parse(_durationcontroller.text);
+      
       var response =
           await currSession.post('/recipe', jsonEncode(recipe.toJson()));
       if (response.statusCode == 200) {
         Navigator.pop(context);
+      }
+      else{
+        print(jsonEncode(recipe.toJson()));
       }
     }
   }
@@ -436,8 +431,7 @@ class _RecipeFormState extends State<RecipeForm> {
                                       Column(children: [
                                         TextFormField(
                                           controller: _instcontroller,
-                                          onChanged: (text) =>
-                                              _getSuggestions(text),
+                                          
                                           autofocus: true,
                                           decoration: const InputDecoration(
                                               labelText: 'Instruction'),
@@ -477,22 +471,6 @@ class _RecipeFormState extends State<RecipeForm> {
                                               )
                                             : Container(),
                                       ]),
-                                      TextFormField(
-                                        controller: _durationcontroller,
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.digitsOnly
-                                        ],
-                                        autofocus: true,
-                                        decoration: const InputDecoration(
-                                            labelText: 'Duration'),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter duration';
-                                          }
-                                          return null;
-                                        },
-                                      ),
                                     ])),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
@@ -510,10 +488,8 @@ class _RecipeFormState extends State<RecipeForm> {
                                         if (form.validate()) {
                                           form.save();
                                           Instruction S = Instruction(
-                                              duration: int.parse(
-                                                  _durationcontroller.text),
-                                              desc: _instcontroller.text,
-                                              ingredients: []);
+                                            desc: _instcontroller.text,
+                                          );
                                           setState(() {
                                             _instructions.add(S);
                                           });
@@ -532,7 +508,6 @@ class _RecipeFormState extends State<RecipeForm> {
                       },
                     );
                   } else {
-                    print(_instructions);
                     return ListTile(
                       title: Text(_instructions[index].desc),
                       trailing: IconButton(
@@ -545,6 +520,22 @@ class _RecipeFormState extends State<RecipeForm> {
                       ),
                     );
                   }
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _durationcontroller,
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ],
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'Duration'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter duration';
+                  }
+                  return null;
                 },
               ),
               const SizedBox(height: 16),

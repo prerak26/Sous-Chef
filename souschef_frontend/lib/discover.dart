@@ -16,7 +16,7 @@ class _DiscoverViewState extends State<DiscoverView> {
 
   Future<List<Cards>> gethomeinfo() async {
     response = await currSession.get("/recipe");
-
+    
     List<dynamic> jsonData = jsonDecode(response.body);
     List<Cards> cards = jsonData.map((recipeData) {
       return Cards(

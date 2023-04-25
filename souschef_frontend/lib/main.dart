@@ -1,5 +1,3 @@
-// import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:souschef_frontend/route_generator.dart';
@@ -19,14 +17,12 @@ class Ingredient {
 }
 
 class Instruction {
-  
   String desc;
-  
-  Instruction(
-      {required this.desc});
+
+  Instruction({required this.desc});
   Map<String, dynamic> toJson() => {
-    'desc': desc,
-  };
+        'desc': desc,
+      };
 }
 
 class Recipe {
@@ -38,23 +34,24 @@ class Recipe {
   List<Ingredient> ingredients = [];
   int duration;
 
-  Recipe(
-      {required this.title,
-      required this.serves,
-      required this.isPublic,
-      required this.steps,
-      required this.tags,
-      required this.ingredients,
-      required this.duration,
-      });
+  Recipe({
+    required this.title,
+    required this.serves,
+    required this.isPublic,
+    required this.steps,
+    required this.tags,
+    required this.ingredients,
+    required this.duration,
+  });
   Map<String, dynamic> toJson() => {
         'title': title,
         'serves': serves,
         'isPublic': isPublic,
         'steps': steps.map((step) => step.toJson()).toList(),
         'tags': tags.map((tag) => tag.toJson()).toList(),
-        'ingredients' : ingredients.map((ingredient) => ingredient.toJson()).toList(),
-        'duration' : duration,
+        'ingredients':
+            ingredients.map((ingredient) => ingredient.toJson()).toList(),
+        'duration': duration,
       };
 }
 

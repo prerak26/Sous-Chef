@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:souschef_frontend/recipe.dart';
 
@@ -28,65 +26,26 @@ Widget authorisationPage(BuildContext context, String caller) {
   );
 }
 
-
-
-Widget card(String title, int serves, String authorid, BuildContext context) {
-  String serve = '$serves';
-  return Card(
-    color: Colors.yellow[50],
-    elevation: 8.0,
-    margin: const EdgeInsets.all(4.0),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    child: Column(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 38.0,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        Text(
-          serve,
-          style: const TextStyle(
-            fontSize: 38.0,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        Text(
-          authorid,
-          style: const TextStyle(
-            fontSize: 38.0,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    ),
-  );
+void _onCardTap(int id, BuildContext context) {
+  Navigator.of(context)
+      .push(MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
 }
 
-void _onCardTap(int id,BuildContext context) {
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
-}
-
-Widget RecipeCards(data){
-  
+Widget recipeCards(data) {
   return ListView.builder(
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  return MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: GestureDetector(
-                          onTap: () =>
-                              _onCardTap(data[index].recipeid,context),
-                          child: Card(
-                            child: ListTile(
-                              title: Text(data[index].title),
-                              subtitle: Text(
-                                  'By ${data[index].authorid} - Serves ${data[index].serves}'),
-                            ),
-                          )));
-                },
-              );
+    itemCount: data.length,
+    itemBuilder: (context, index) {
+      return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+              onTap: () => _onCardTap(data[index].recipeid, context),
+              child: Card(
+                child: ListTile(
+                  title: Text(data[index].title),
+                  subtitle: Text(
+                      'By ${data[index].authorid} - Serves ${data[index].serves}'),
+                ),
+              )));
+    },
+  );
 }

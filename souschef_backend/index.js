@@ -245,27 +245,93 @@ app.post('/recipe', (req, res) => {
 app.get('/recipe/:id', (req, res) => {
   session = req.session;
   let reqRecipe = null;
+  let errorCaught = null;
   model.getRecipe(parseInt(req.params.id))
-    .then(response => {
+    .then(async response => {
       if ((response.length !== 0)) {
         reqRecipe = response[0];
         if (reqRecipe.visibility === 'private' && session.userid !== reqRecipe.authorid) {
-          res.status(403).send({ message: "Unauthorized access" });
-          console.log(model.getDateTime(), 'GET: /recipe/:id', 403);
         } else {
-          res.status(200).send(reqRecipe);
-          console.log(model.getDateTime(), 'GET: /recipe/:id', 200);
+          await Promis.all([
+            model.getRecipeTags(reqRecipe.recipeid)
+              .then(response => {
+                reqRecipe.tags = response;
+              }).catch(error => {
+                errorCaught = error;
+              }),
+            model.getRecipeRequirements(reqrecipe.recipeid)
+              .then(response => {
+                reqRecipe.requirements = response;
+              }).catch(error => {
+                errorCaught = error;
+              })
+          ]);
         }
-      } else {
-        res.status(404).send({ message: "Recipe not found" });
-        console.log(model.getDateTime(), 'GET: /recipe/:id', 404);
       }
     })
     .catch(error => {
-      res.status(500).send(error);
-      console.log(model.getDateTime(), 'GET: /recipe/:id', 500);
+      errorCaught = error;
+    })
+    .finally(() => {
+      if (errorCaught !== null) {
+        res.status(500).send(errorCaught);
+        console.log(model.getDateTime(), 'GET: /recipe/:id', 500);
+      } else if (reqRecipe === null) {
+        res.status(404).send({ message: "Recipe not found" });
+        console.log(model.getDateTime(), 'GET: /recipe/:id', 404);
+      } else if (reqRecipe.visibility === 'private' && session.userid !== reqRecipe.authorid) {
+        res.status(403).send({ message: "Unauthorized access" });
+        console.log(model.getDateTime(), 'GET: /recipe/:id', 403);
+      } else {
+        res.status(200).send(reqRecipe);
+        console.log(model.getDateTime(), 'GET: /recipe/:id', 200);
+      }
     });
 });
+
+app.get('recipe/:id/:step', (res, req) => {
+  session = req.session;
+  let reqRecipe = null;
+  let reqStep = null;
+  let errorCaught = null;
+  model.getRecipe(parseInt(req.params.id))
+    .then(async response => {
+      if ((response.length !== 0)) {
+        reqRecipe = response[0];
+        if (reqRecipe.visibility === 'private' && session.userid !== reqRecipe.authorid) {
+        } else if (reqRecipe.stepcount <= parseInt(req.params.step)) {
+        } else {
+          await model.getRecipeStep(reqRecipe.recipeid, parseInt(req.params.step))
+            .then(response => {
+              reqStep = response[0];
+            }).catch(error => {
+              errorCaught = error;
+            })
+        }
+      }
+    })
+    .catch(error => {
+      errorCaught = error;
+    })
+    .finally(() => {
+      if (errorCaught !== null) {
+        res.status(500).send(errorCaught);
+        console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 500);
+      } else if (reqRecipe === null) {
+        res.status(404).send({ message: "Recipe not found" });
+        console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 404);
+      } else if (reqRecipe.visibility === 'private' && session.userid !== reqRecipe.authorid) {
+        res.status(403).send({ message: "Unauthorized access" });
+        console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 403);
+      } else if (reqRecipe.stepcount <= parseInt(req.params.step)) {
+        res.status(404).send({ message: "Step not found" });
+        console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 404);
+      } else {
+        res.status(200).send(reqStep);
+        console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 200);
+      }
+    });
+})
 
 // Update recipe by id [auth] [Edit recipe View]
 app.post('/recipe/:id', (req, res) => {
@@ -521,6 +587,28 @@ app.get('/ingredient', (req, res) => {
   } else {
     res.status(400).send({ message: "Limit is NaN" });
     console.log(model.getDateTime(), 'GET: /ingredient', 400);
+  }
+});
+
+// Get tags list by query [Query tags view]
+app.get('/recipe/names', (req, res) => {
+  if (req.query.key === undefined)
+    req.query.key = "";
+  if (req.query.lim === undefined)
+    req.query.lim = '10';
+  if (parseInt(req.query.lim).toString() !== 'NaN') {
+    model.getRecipeByKey(req.query.key, parseInt(req.query.lim))
+      .then(response => {
+        res.status(200).send(response);
+        console.log(model.getDateTime(), 'GET: /recipe/names', 200);
+      })
+      .catch(error => {
+        res.status(500).send(error);
+        console.log(model.getDateTime(), 'GET: /recipe/names', 500);
+      });
+  } else {
+    res.status(400).send({ message: "Limit is NaN" });
+    console.log(model.getDateTime(), 'GET: /recipe/names', 400);
   }
 });
 

@@ -64,8 +64,46 @@ const createChef = (id, name, pswd) => {
 }
 
 const getRecipe = (id) => {
+  let query_str = 'WITH one_recipe AS (SELECT * FROM Recipes WHERE recipeId='+id+')';
+  query_str = query_str.concat(recipeListQueries('one_recipe', 'final_recipe'));
+  query_str = query_str.concat(', ', 'final_final_recipe AS (SELECT * FROM final_recipe NATURAL JOIN (SELECT recipeId, count(stepNumber) as stepcount FROM Steps GROUP BY (recipeId)) AS A)');
+  query_str = query_str.concat(' ', 'SELECT * FROM final_final_recipe');
+  console.log(query_str);
   return new Promise((resolve, reject) => {
-    pool.query('SELECT * FROM Recipes where recipeId=$1', [id], (error, results) => {
+    pool.query(query_str, [], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
+const getRecipeTags = (id) => {
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM Tagged NATURAL JOIN Tags WHERE recipeId=$1', [id], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
+const getRecipeRequirements = (id) => {
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM Requirements NATURAL JOIN Ingredients WHERE recipeId=$1', [id], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
+const getRecipeStep = (id, step) => {
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM Steps WHERE recipeId=$1 AND stepNumber=$2', [id, step], (error, results) => {
       if (error)
         reject(error);
       if (results)
@@ -405,6 +443,19 @@ const getChefByKey = (key, lim) => {
   })
 }
 
+const getRecipeByKey = (key, lim) => {
+  const searchKey = key + '%';
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT * FROM Recipes WHERE name like $1 limit $2',
+      [searchKey, lim], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
 module.exports = {
   beginQuery,
   rollbackQuery,
@@ -438,5 +489,9 @@ module.exports = {
   getIngredientByKey,
   getTagByKey,
   getChefByKey,
-  recipeListQueries
+  recipeListQueries,
+  getRecipeTags,
+  getRecipeRequirements,
+  getRecipeStep,
+  getRecipeByKey
 }

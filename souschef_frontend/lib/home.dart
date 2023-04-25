@@ -23,6 +23,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   List<Cards> cards = [];
+  List<Cards> bookmarkcards = [];
   // ignore: prefer_typing_uninitialized_variables
   var response;
   Future<User> gethomeinfo() async {
@@ -33,6 +34,18 @@ class _HomeViewState extends State<HomeView> {
     List<dynamic> recipe = body['recipes'];
 
     cards = recipe.map((recipeData) {
+      return Cards(
+          title: recipeData['title'],
+          serves: recipeData['serves'],
+          authorid: recipeData['authorid'],
+          recipeid: recipeData['recipeid'],
+          rating: recipeData['averagerating'],
+          duration: recipeData['duration']);
+    }).toList();
+
+    List<dynamic> bookmark = body['recipes'];
+
+    bookmarkcards = bookmark.map((recipeData) {
       return Cards(
           title: recipeData['title'],
           serves: recipeData['serves'],
@@ -104,31 +117,10 @@ class _HomeViewState extends State<HomeView> {
                               top: BorderSide(color: Colors.grey, width: 0.5))),
                       child: TabBarView(children: <Widget>[
                         Container(
-                          child: ListView.builder(
-                            itemCount: cards.length,
-                            itemBuilder: (context, index) {
-                              return MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: GestureDetector(
-                                      onTap: () => _onCardTap(
-                                          cards[index].recipeid),
-                                      child: Card(
-                                        child: ListTile(
-                                          title:
-                                              Text(cards[index].title),
-                                          subtitle: Text(
-                                              'By ${cards[index].authorid} - Serves ${cards[index].serves}'),
-                                        ),
-                                      )));
-                            },
-                          ),
+                          child: RecipeCards(cards),
                         ),
                         Container(
-                          child: Center(
-                            child: Text('Display Tab 2',
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold)),
-                          ),
+                          child: RecipeCards(cards),
                         ),
                       ]))
                 ])),

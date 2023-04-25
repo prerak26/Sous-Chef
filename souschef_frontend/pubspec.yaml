@@ -44,6 +44,8 @@ dependencies:
   requests: ^4.8.0-alpha.0
   autocomplete_textfield: ^2.0.1
   searchfield: ^0.7.5
+  smooth_star_rating: ^1.1.1
+  flutter_rating_bar: ^4.0.1
 
   
   

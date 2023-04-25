@@ -1,4 +1,7 @@
+
+
 import 'package:flutter/material.dart';
+import 'package:souschef_frontend/recipe.dart';
 
 Widget authorisationPage(BuildContext context, String caller) {
   return Scaffold(
@@ -24,6 +27,8 @@ Widget authorisationPage(BuildContext context, String caller) {
     ),
   );
 }
+
+
 
 Widget card(String title, int serves, String authorid, BuildContext context) {
   String serve = '$serves';
@@ -58,4 +63,30 @@ Widget card(String title, int serves, String authorid, BuildContext context) {
       ],
     ),
   );
+}
+
+void _onCardTap(int id,BuildContext context) {
+    Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
+}
+
+Widget RecipeCards(data){
+  
+  return ListView.builder(
+                itemCount: data.length,
+                itemBuilder: (context, index) {
+                  return MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                          onTap: () =>
+                              _onCardTap(data[index].recipeid,context),
+                          child: Card(
+                            child: ListTile(
+                              title: Text(data[index].title),
+                              subtitle: Text(
+                                  'By ${data[index].authorid} - Serves ${data[index].serves}'),
+                            ),
+                          )));
+                },
+              );
 }

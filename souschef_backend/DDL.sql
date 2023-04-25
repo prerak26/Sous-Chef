@@ -12,7 +12,7 @@ create TABLE Recipes
         title VARCHAR(50) not null,
         serves INT check (serves > 0),
         lastModified TIMESTAMP not null,
-        duration INT not null, -- in seconds
+        duration INTERVAL not null,
         visibility varchar(7) check (
             visibility in ('public', 'private')
         ),
@@ -79,7 +79,7 @@ create TABLE Ratings
     (
         recipeId INT not null,
         chefId VARCHAR(40) not null,
-        rating INT check (rating > 0 and rating < 6),
+        rating INT check (rating >= 0 and rating < 6),
         lastModified TIMESTAMP not null,
         primary key (recipeId, chefId),
         foreign key (recipeId) references Recipes on delete cascade,

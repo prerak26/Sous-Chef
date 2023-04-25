@@ -36,16 +36,18 @@ Widget recipeCards(data) {
     itemCount: data.length,
     itemBuilder: (context, index) {
       return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-              onTap: () => _onCardTap(data[index].recipeid, context),
-              child: Card(
-                child: ListTile(
-                  title: Text(data[index].title),
-                  subtitle: Text(
-                      'By ${data[index].authorid} - Serves ${data[index].serves}'),
-                ),
-              )));
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () => _onCardTap(data[index].recipeid, context),
+          child: Card(
+            child: ListTile(
+              title: Text(data[index].title),
+              subtitle: Text(
+                  'By ${data[index].authorid} - Serves ${data[index].serves}'),
+            ),
+          ),
+        ),
+      );
     },
   );
 }

@@ -10,11 +10,7 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class User {
-  final String? chefid;
-  final String? name;
-  User({this.chefid, this.name});
-}
+
 
 class _HomeViewState extends State<HomeView> {
   // ignore: prefer_typing_uninitialized_variables
@@ -25,63 +21,88 @@ class _HomeViewState extends State<HomeView> {
     var body = json.decode(response.body);
     User user = User(chefid: body["chefId"], name: body["name"]);
     //print(body["recipes"]);
-    
-    return user;
 
+    return user;
   }
 
   //TabController _controller = new TabController();
 
   Widget display(data) {
     return Container(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
-          SizedBox(height: 20.0),
-          Padding(
-            padding: EdgeInsets.only(left : 10 , top: 10 , bottom: 20 ),
-            child:Text("Id : ${data.chefid}"),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left : 10 , top: 10 , bottom: 20 ),
-            child:Text("Name : ${data.name}"),
-          ),
-          DefaultTabController(
-            length: 2, // length of tabs
-            initialIndex: 0,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
-              Container(
-                child: TabBar(
-                  labelColor: Colors.green,
-                  unselectedLabelColor: Colors.black,
-                  tabs: [
-                    Tab(text: 'My Recipes'),
-                    Tab(text: 'Bookmarks'),
-                    
-                  ],
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            SizedBox(height: 20.0),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Column(children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 10, top: 10, bottom: 20),
+                  child: Text("Id : ${data.chefid}"),
                 ),
-              ),
-              Container(
-                height: 400, //height of TabBarView
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.grey, width: 0.5))
+                Padding(
+                  padding: EdgeInsets.only(left: 10, top: 10, bottom: 20),
+                  child: Text("Name : ${data.name}"),
+                )
+              ]),
+              Padding(
+                padding: EdgeInsets.only(right: 15),
+                child: FloatingActionButton(
+                  backgroundColor: Colors.amberAccent,
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => const RecipeForm()));
+                  },
+                  child: const Icon(
+                    Icons.add,
+                    size: 35,
+                    color: Colors.black,
+                  ),
                 ),
-                child: TabBarView(children: <Widget>[
-                  Container(
-                    child: Center(
-                      child: Text('Display Tab 1', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  Container(
-                    child: Center(
-                      child: Text('Display Tab 2', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  
-                ])
               )
-            ])
-          ),
-        ]),
-      );
+            ]),
+            DefaultTabController(
+                length: 2, // length of tabs
+                initialIndex: 0,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Container(
+                        child: TabBar(
+                          labelColor: Colors.green,
+                          unselectedLabelColor: Colors.black,
+                          tabs: [
+                            Tab(text: 'My Recipes'),
+                            Tab(text: 'Bookmarks'),
+                          ],
+                        ),
+                      ),
+                      Container(
+                          height: 400, //height of TabBarView
+                          decoration: BoxDecoration(
+                              border: Border(
+                                  top: BorderSide(
+                                      color: Colors.grey, width: 0.5))),
+                          child: TabBarView(children: <Widget>[
+                            Container(
+                              child: Center(
+                                child: Text('Display Tab 1',
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                            Container(
+                              child: Center(
+                                child: Text('Display Tab 2',
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ]))
+                    ])),
+          ]),
+    );
   }
 
   @override

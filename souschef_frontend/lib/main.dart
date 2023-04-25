@@ -63,6 +63,12 @@ class Tag {
       };
 }
 
+class User {
+  final String? chefid;
+  final String? name;
+  User({this.chefid, this.name});
+}
+
 void main() {
   runApp(const MyApp());
 }

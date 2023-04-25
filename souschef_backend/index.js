@@ -216,6 +216,11 @@ app.post('/recipe', (req, res) => {
                 model.createRequirement(recipeId, ingredient.id, ingredient.quantity)
                   .catch(error => {
                     errorCaught = error;
+                  }))),
+              await Promise.all(req.body.tags.map((tag, k) =>
+                model.applyTags(parseInt(recipeId), parseInt(tag.id))
+                  .catch(error => {
+                    errorCaught = error;
                   })))
             ]);
           })
@@ -354,18 +359,29 @@ app.post('/recipe/:id', (req, res) => {
                   .then(async response => {
                     await model.deleteRequirements(parseInt(reqRecipe.recipeid))
                       .then(async response => {
-                        await Promise.all([
-                          await Promise.all(req.body.steps.map((step, i) =>
-                            model.createStep(parseInt(reqRecipe.recipeid), i + 1, step.desc)
+                        await model.deleteTags(parseInt(reqRecipe.recipeid))
+                          .then(async response => {
+                            await Promise.all([
+                              await Promise.all(req.body.steps.map((step, i) =>
+                              model.createStep(parseInt(reqRecipe.recipeid), i + 1, step.desc)
                               .catch(error => {
                                 errorCaught = error;
                               }))),
-                          await Promise.all(req.body.ingredients.map((ingredient, j) =>
-                            model.createRequirement(parseInt(reqRecipe.recipeid), ingredient.id, ingredient.quantity)
+                              await Promise.all(req.body.ingredients.map((ingredient, j) =>
+                              model.createRequirement(parseInt(reqRecipe.recipeid), ingredient.id, ingredient.quantity)
+                              .catch(error => {
+                                errorCaught = error;
+                              }))),
+                              await Promise.all(req.body.tags.map((tag, k) =>
+                              model.applyTags(parseInt(reqRecipe.recipeid), parseInt(tag.id))
                               .catch(error => {
                                 errorCaught = error;
                               })))
-                        ]);
+                            ]);
+                          })
+                          .catch(error => {
+                            errorCaught = error;
+                          })
                       })
                       .catch(error => {
                         errorCaught = error;

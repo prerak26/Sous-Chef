@@ -391,6 +391,30 @@ const createTag = (tagId, name) => {
   })
 }
 
+const applyTags = (recipeId, tagId) => {
+  return new Promise((resolve, reject) => {
+    pool.query('INSERT INTO Tagged (recipeId, tagId) VALUES ($1, $2)',
+      [recipeId, tagId], (error, results) => {
+        if (error)
+          reject(error);
+        if (results)
+          resolve(results.rows);
+      })
+  })
+}
+
+const deleteTags = (recipeId) => {
+  return new Promise((resolve, reject) => { 
+    pool.query('DELETE FROM Tagged WHERE recipeId = $1', [recipeId], (error, results) => {
+      if (error)
+        reject(error);
+      if (results)
+        resolve(results.rows);
+    })
+  })
+}
+
+
 const getRequirementsByRecipe = (recipeId) => {
   return new Promise((resolve, reject) => {
     pool.query('SELECT SUM(quantity), ingredientid FROM requirements WHERE recipeid = $1 GROUP BY ingredientid;',
@@ -484,6 +508,8 @@ module.exports = {
   createIngredient,
   getTagId,
   createTag,
+  applyTags,
+  deleteTags,
   getRequirementsByRecipe,
   getIngredientByKey,
   getTagByKey,

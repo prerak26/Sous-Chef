@@ -508,12 +508,11 @@ app.get('/recipe', (req, res) => {
   if (req.query.tags !== undefined) {
     // let tag_list = req.query.tags.replaceall(' ', ',');
     let tag_list = req.query.tags.split(" ").join(", ");
-    console.log(tag_list);
     // let tag_list = req.query.tags.replaceAll(" ", ",");
     query_str = query_str.concat(', ', 'given_tags AS (SELECT * FROM Tags WHERE tagid IN (', tag_list, '))');
     query_str = query_str.concat(', ', 'tag_count AS (SELECT COUNT(*) AS count FROM given_tags)',);
     query_str = query_str.concat(', ', 'recipes_with_tags AS (SELECT COUNT(tagged.recipeid) as count, tagged.recipeid AS recipeid FROM tagged JOIN given_tags ON tagged.tagid = given_tags.tagid GROUP BY tagged.recipeid)');
-    query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT A.recipeid,A.title,A.serves,A.authorid,A.lastmodified from queried_recipes AS A JOIN recipes_with_tags AS B ON A.recipeid = B.recipeid WHERE B.count = (SELECT count FROM tag_count))');
+    query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT A.recipeid,A.title,A.serves,A.authorid,A.lastmodified,A.duration from queried_recipes AS A JOIN recipes_with_tags AS B ON A.recipeid = B.recipeid WHERE B.count = (SELECT count FROM tag_count))');
   } else {
     query_str = query_str.concat(', ', 'tagged_recipes AS (SELECT * FROM queried_recipes)');
   }
@@ -535,7 +534,7 @@ app.get('/recipe', (req, res) => {
   } else if (req.query.sort === 'fast') {
     query_str = query_str.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY totalTime ASC)');
   } else {
-    query_str = query_str.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY totalrating DESC)');
+    query_str = query_str.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY ratingtotal DESC)');
   }
   query_str = query_str.concat(' ', 'SELECT * FROM sorted_recipes LIMIT 50');
   model.getRecipes(query_str)

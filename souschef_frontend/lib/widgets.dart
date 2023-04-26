@@ -26,19 +26,21 @@ Widget authorisationPage(BuildContext context, String caller) {
   );
 }
 
-void _onCardTap(int id, BuildContext context) {
-  Navigator.of(context)
-      .push(MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
+void _onCardTap(int id, BuildContext context,obj) {
+ Navigator.of(context)
+        .push(MaterialPageRoute(
+            builder: (context) => RecipePage(recipeId: id)))
+        .then((_){print("calledthis");obj.setState(() {});});
 }
 
-Widget recipeCards(data) {
+Widget recipeCards(data,obj) {
   return ListView.builder(
     itemCount: data.length,
     itemBuilder: (context, index) {
       return MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: () => _onCardTap(data[index].recipeid, context),
+          onTap: () => _onCardTap(data[index].recipeid, context,obj),
           child: Card(
             child: ListTile(
               title: Text(data[index].title),

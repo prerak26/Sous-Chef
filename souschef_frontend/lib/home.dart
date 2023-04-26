@@ -122,10 +122,10 @@ class _HomeViewState extends State<HomeView> {
                                       color: Colors.grey, width: 0.5))),
                           child: TabBarView(children: <Widget>[
                             Container(
-                              child: recipeCards(cards),
+                              child: recipeCards(cards,this),
                             ),
                             Container(
-                              child: recipeCards(bookmarkcards),
+                              child: recipeCards(bookmarkcards,this),
                             ),
                           ]))
                     ])),

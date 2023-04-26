@@ -103,7 +103,7 @@ class _DiscoverViewState extends State<DiscoverView> {
             builder: (context, snapshot) {
               return snapshot.hasData
                   ? Expanded(
-                      child: recipeCards(snapshot.data),
+                      child: recipeCards(snapshot.data,this),
                     )
                   : const Center(
                       child: CircularProgressIndicator(),

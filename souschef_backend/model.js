@@ -63,11 +63,12 @@ const createChef = (id, name, pswd) => {
   })
 }
 
-const getRecipe = (id) => {
-  let query_str = 'WITH one_recipe AS (SELECT * FROM Recipes WHERE recipeId='+id+')';
-  query_str = query_str.concat(recipeListQueries('one_recipe', 'final_recipe'));
-  query_str = query_str.concat(', ', 'final_final_recipe AS (SELECT * FROM final_recipe NATURAL JOIN (SELECT recipeId, count(stepNumber) as stepcount FROM Steps GROUP BY (recipeId)) AS A)');
-  query_str = query_str.concat(' ', 'SELECT * FROM final_final_recipe');
+const getRecipe = (recipeid, userid) => {
+  let query_str = 'WITH one_recipe AS (SELECT * FROM Recipes WHERE recipeId='+recipeid+')';
+  query_str = query_str.concat(recipeListQueries('one_recipe', 'rating_recipe'));
+  query_str = query_str.concat(', ', 'stepcount_recipe AS (SELECT * FROM rating_recipe NATURAL JOIN (SELECT recipeId, count(stepNumber) as stepcount FROM Steps GROUP BY (recipeId)) AS A)');
+  query_str = query_str.concat(', ', 'bookmarked_recipe AS (SELECT *, (CASE WHEN EXISTS (SELECT * FROM Bookmarks WHERE recipeid='+recipeid+' AND chefid=\''+userid+'\') THEN \'true\' ELSE \'false\' END) AS isbookmarked FROM stepcount_recipe )');
+  query_str = query_str.concat(' ', 'SELECT * FROM bookmarked_recipe');
   return new Promise((resolve, reject) => {
     pool.query(query_str, [], (error, results) => {
       if (error)

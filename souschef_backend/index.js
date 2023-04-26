@@ -251,7 +251,7 @@ app.get('/recipe/:id', (req, res) => {
   session = req.session;
   let reqRecipe = null;
   let errorCaught = null;
-  model.getRecipe(parseInt(req.params.id))
+  model.getRecipe(parseInt(req.params.id), session.userid)
     .then(async response => {
       if ((response.length !== 0)) {
         reqRecipe = response[0];
@@ -294,7 +294,7 @@ app.get('/recipe/:id', (req, res) => {
     });
 });
 
-app.get('recipe/:id/:step', (res, req) => {
+app.get('/step/:id/:step', (req, res) => {
   session = req.session;
   let reqRecipe = null;
   let reqStep = null;
@@ -304,7 +304,7 @@ app.get('recipe/:id/:step', (res, req) => {
       if ((response.length !== 0)) {
         reqRecipe = response[0];
         if (reqRecipe.visibility === 'private' && session.userid !== reqRecipe.authorid) {
-        } else if (reqRecipe.stepcount <= parseInt(req.params.step)) {
+        } else if (reqRecipe.stepcount < parseInt(req.params.step) || 0 >= parseInt(req.params.step)) {
         } else {
           await model.getRecipeStep(reqRecipe.recipeid, parseInt(req.params.step))
             .then(response => {
@@ -328,7 +328,7 @@ app.get('recipe/:id/:step', (res, req) => {
       } else if (reqRecipe.visibility === 'private' && session.userid !== reqRecipe.authorid) {
         res.status(403).send({ message: "Unauthorized access" });
         console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 403);
-      } else if (reqRecipe.stepcount <= parseInt(req.params.step)) {
+      } else if (reqRecipe.stepcount < parseInt(req.params.step) || 0 >= parseInt(req.params.step)) {
         res.status(404).send({ message: "Step not found" });
         console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 404);
       } else {
@@ -363,20 +363,20 @@ app.post('/recipe/:id', (req, res) => {
                           .then(async response => {
                             await Promise.all([
                               await Promise.all(req.body.steps.map((step, i) =>
-                              model.createStep(parseInt(reqRecipe.recipeid), i + 1, step.desc)
-                              .catch(error => {
-                                errorCaught = error;
-                              }))),
+                                model.createStep(parseInt(reqRecipe.recipeid), i + 1, step.desc)
+                                  .catch(error => {
+                                    errorCaught = error;
+                                  }))),
                               await Promise.all(req.body.ingredients.map((ingredient, j) =>
-                              model.createRequirement(parseInt(reqRecipe.recipeid), ingredient.id, ingredient.quantity)
-                              .catch(error => {
-                                errorCaught = error;
-                              }))),
+                                model.createRequirement(parseInt(reqRecipe.recipeid), ingredient.id, ingredient.quantity)
+                                  .catch(error => {
+                                    errorCaught = error;
+                                  }))),
                               await Promise.all(req.body.tags.map((tag, k) =>
-                              model.applyTags(parseInt(reqRecipe.recipeid), parseInt(tag.id))
-                              .catch(error => {
-                                errorCaught = error;
-                              })))
+                                model.applyTags(parseInt(reqRecipe.recipeid), parseInt(tag.id))
+                                  .catch(error => {
+                                    errorCaught = error;
+                                  })))
                             ]);
                           })
                           .catch(error => {

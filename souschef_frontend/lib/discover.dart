@@ -50,6 +50,7 @@ class _DiscoverViewState extends State<DiscoverView> {
     queries.add("sort=$_sort");
     response = await currSession.get("/recipe?${queries.join('&')}");
     List<dynamic> body = jsonDecode(response.body);
+    print(body);
     List<Cards> cards = body.map((recipeData) {
       return Cards(
           title: recipeData['title'],
@@ -57,8 +58,9 @@ class _DiscoverViewState extends State<DiscoverView> {
           authorid: recipeData['authorid'],
           recipeid: recipeData['recipeid'],
           rating: recipeData['averagerating'],
-          duration: recipeData['duration']['seconds']);
+          duration: "${recipeData['duration']['hours']} : ${recipeData['duration']['minutes']}");
     }).toList();
+    
     return cards;
   }
 

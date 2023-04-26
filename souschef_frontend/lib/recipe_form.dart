@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
-
+import 'package:flutter_picker/flutter_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:souschef_frontend/main.dart';
@@ -23,8 +23,6 @@ class _RecipeFormState extends State<RecipeForm> {
   final _durationcontroller = TextEditingController();
 
   List<String> _suggestions = [];
-
-
 
   Future<List<Tag>> _fetchSuggestions(String query) async {
     final String apiUrl = '/tag?key=$query';
@@ -298,7 +296,7 @@ class _RecipeFormState extends State<RecipeForm> {
           }),
     ]);
   }
-
+  String ptDuration = "";
   Recipe recipe = Recipe(
       title: "",
       serves: 0,
@@ -306,7 +304,7 @@ class _RecipeFormState extends State<RecipeForm> {
       steps: [],
       tags: [],
       ingredients: [],
-      duration: 0);
+      duration: "");
 
   void _saveRecipe() async {
     if (_formKey.currentState!.validate()) {
@@ -324,14 +322,13 @@ class _RecipeFormState extends State<RecipeForm> {
       recipe.steps = _instructions;
       recipe.tags = tags;
       recipe.ingredients = ingredientsub;
-      recipe.duration = int.parse(_durationcontroller.text);
-      
+      recipe.duration = ptDuration;
+
       var response =
           await currSession.post('/recipe', jsonEncode(recipe.toJson()));
       if (response.statusCode == 200) {
         Navigator.pop(context);
-      }
-      else{
+      } else {
         print(jsonEncode(recipe.toJson()));
       }
     }
@@ -431,7 +428,6 @@ class _RecipeFormState extends State<RecipeForm> {
                                       Column(children: [
                                         TextFormField(
                                           controller: _instcontroller,
-                                          
                                           autofocus: true,
                                           decoration: const InputDecoration(
                                               labelText: 'Instruction'),
@@ -523,21 +519,58 @@ class _RecipeFormState extends State<RecipeForm> {
                 },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _durationcontroller,
-                keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly
-                ],
-                autofocus: true,
-                decoration: const InputDecoration(labelText: 'Duration'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter duration';
-                  }
-                  return null;
-                },
-              ),
+
+              TextField(
+                  controller: _durationcontroller, //editing controller of this TextField
+                  decoration: const InputDecoration(
+                      icon: Icon(Icons.calendar_today), //icon of text field
+                      labelText: "Enter Duration" //label text of field
+                      ),
+                  readOnly:
+                      true, //set it true, so that user will not able to edit text
+                  onTap: () {
+                    Picker(
+                      adapter: NumberPickerAdapter(data: <NumberPickerColumn>[
+                        const NumberPickerColumn(
+                          begin: 0, end: 999, suffix: Text(' hours')),
+                        const NumberPickerColumn(
+                          columnFlex: 1,
+                            begin: 0,
+                            end: 60,
+                            suffix: Text(' min'),
+                            jump: 15),
+                      ]),
+                      delimiter: <PickerDelimiter>[
+                        PickerDelimiter(
+                          child: Container(
+                            width: 50.0,
+                            alignment: Alignment.center,
+                            child: Icon(Icons.more_vert),
+                          ),
+                        )
+                      ],
+                      hideHeader: true,
+                      confirmText: 'OK',
+                      confirmTextStyle: TextStyle(
+                          inherit: false, color: Colors.red, fontSize: 15),
+                      title: const Text('Select duration'),
+                      selectedTextStyle: TextStyle(color: Colors.blue),
+                      onConfirm: (Picker picker, List<int> value) {
+                        
+                        // You get your duration here
+                        Duration _duration = Duration(
+                            hours: picker.getSelectedValues()[0],
+                            minutes: picker.getSelectedValues()[1]);
+                        _durationcontroller.text = "${picker.getSelectedValues()[0]}:${picker.getSelectedValues()[1]}"; 
+                        setState(() {
+                          ptDuration = "PT${picker.getSelectedValues()[0]}H${picker.getSelectedValues()[1]}M";
+                        });
+
+                      },
+                      
+                    ).showDialog(context);
+                  }),
+
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _saveRecipe,

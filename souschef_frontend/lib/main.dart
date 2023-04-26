@@ -32,7 +32,7 @@ class Recipe {
   List<Instruction> steps = [];
   List<Tag> tags = [];
   List<Ingredient> ingredients = [];
-  int duration;
+  String duration;
 
   Recipe({
     required this.title,
@@ -60,7 +60,7 @@ class Tag {
   String name;
   Tag({required this.tagid, required this.name});
   Map<String, dynamic> toJson() => {
-        'tagid': tagid,
+        'id': tagid,
         'name': name,
       };
 }
@@ -81,7 +81,7 @@ class Cards {
   int serves;
   String authorid;
   double? rating;
-  int duration;
+  String duration;
   Cards({
     required this.recipeid,
     required this.title,

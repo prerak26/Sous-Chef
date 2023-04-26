@@ -76,6 +76,22 @@ class _ShoppingListViewState extends State<ShoppingListView> {
     }
     return Scaffold(
         appBar: AppBar(
+          actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              var response = await currSession.get("/logout");
+              if (response.statusCode == 200) {
+                setState(() {
+                  session.isLogged = false;
+                  session.id = null;
+                  session.pswd = null;
+                });
+              }
+            },
+          ),
+        ],
           title: const Text('Shopping List'),
           automaticallyImplyLeading: false,
         ),

@@ -29,7 +29,7 @@ class _RecipeFormState extends State<RecipeForm> {
     final response = await currSession.get(apiUrl);
     if (response.statusCode == 200) {
       List<dynamic> t = jsonDecode(response.body);
-      print(t);
+      
       List<Tag> l = t.map((tagData) {
         return Tag(
           tagid: tagData['tagid'],
@@ -82,10 +82,10 @@ class _RecipeFormState extends State<RecipeForm> {
 
   Future<void> _addIngredient(String value, String kind) async {
     const String apiUrl = '/ingredient';
-    print(json.encode({'name': value, 'kind': kind}));
+    
     final response = await currSession.post(
         apiUrl, json.encode({'name': value, 'kind': kind}));
-    //print(response);
+   
     if (response.statusCode == 200) {
     } else {
       throw Exception('Failed to add new value');
@@ -329,7 +329,7 @@ class _RecipeFormState extends State<RecipeForm> {
       if (response.statusCode == 200) {
         Navigator.pop(context);
       } else {
-        print(jsonEncode(recipe.toJson()));
+        
       }
     }
   }

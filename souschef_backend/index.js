@@ -204,7 +204,7 @@ app.post('/recipe', (req, res) => {
       .then(async response => {
         recipeId = response;
         await model.createRecipe(recipeId, req.body.title, parseInt(req.body.serves),
-          (req.body.isPublic ? 'public' : 'private'), session.userid, parseInt(req.body.duration))
+          (req.body.isPublic ? 'public' : 'private'), session.userid, req.body.duration)
           .then(async response => {
             await Promise.all([
               await Promise.all(req.body.steps.map((step, i) =>

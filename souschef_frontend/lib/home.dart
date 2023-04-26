@@ -14,10 +14,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  void _onCardTap(int id) {
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)));
-  }
+  
 
   List<Cards> cards = [];
   List<Cards> bookmarkcards = [];
@@ -36,12 +33,14 @@ class _HomeViewState extends State<HomeView> {
           serves: recipeData['serves'],
           authorid: recipeData['authorid'],
           recipeid: recipeData['recipeid'],
-          rating: recipeData['averagerating'],
+          rating: (recipeData['averagerating'] == null)
+              ? recipeData['averagerating']
+              : 0,
           duration:
               "${recipeData['duration']['hours']} : ${recipeData['duration']['minutes']}");
     }).toList();
-
-    List<dynamic> bookmark = body['recipes'];
+    print(body);
+    List<dynamic> bookmark = body['bookmarks'];
 
     bookmarkcards = bookmark.map((recipeData) {
       return Cards(
@@ -49,15 +48,15 @@ class _HomeViewState extends State<HomeView> {
           serves: recipeData['serves'],
           authorid: recipeData['authorid'],
           recipeid: recipeData['recipeid'],
-          rating: recipeData['averagerating'],
+          rating: (recipeData['averagerating'] == null)
+              ? recipeData['averagerating']
+              : 0,
           duration:
               "${recipeData['duration']['hours']} : ${recipeData['duration']['minutes']}");
     }).toList();
 
     return user;
   }
-
-
 
   //TabController _controller = new TabController();
 
@@ -104,6 +103,9 @@ class _HomeViewState extends State<HomeView> {
                     children: <Widget>[
                       Container(
                         child: TabBar(
+                          onTap: (value) {
+                            setState(() {});
+                          },
                           labelColor: Colors.green,
                           unselectedLabelColor: Colors.black,
                           tabs: [
@@ -123,7 +125,7 @@ class _HomeViewState extends State<HomeView> {
                               child: recipeCards(cards),
                             ),
                             Container(
-                              child: recipeCards(cards),
+                              child: recipeCards(bookmarkcards),
                             ),
                           ]))
                     ])),

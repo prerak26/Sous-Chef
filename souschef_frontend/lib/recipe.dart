@@ -19,9 +19,7 @@ class _RecipePageState extends State<RecipePage> {
     final String apiUrl = '/recipe/${widget.recipeId}';
     final response = await currSession.get(apiUrl);
     if (response.statusCode == 200) {
-      print(response.body);
       dynamic t = jsonDecode(response.body);
-
       return t;
     } else {
       throw Exception('Failed to load recipe/${widget.recipeId}');
@@ -31,10 +29,8 @@ class _RecipePageState extends State<RecipePage> {
   Future<String> _fetchstep(int step) async {
     final String apiUrl = '/step/${widget.recipeId}?step=$step';
     final response = await currSession.get(apiUrl);
-    print(response.body);
-    if (response.statusCode == 200) {
-      print(response.body);
-    }
+
+    if (response.statusCode == 200) {}
 
     return "a";
   }
@@ -45,11 +41,41 @@ class _RecipePageState extends State<RecipePage> {
         future: _fetchrecipe(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            double rating = snapshot.data!['averagerating'] ?? 0;
+            bool isbookmark = snapshot.data!['isbookmarked'] == "true";
+            double rating = (snapshot.data!['averagerating'] == 0)
+                ? double.parse(snapshot.data!['averagerating'])
+                : 0;
             int new_rating = 0;
             String k = snapshot.data!['lastmodified'];
             return Scaffold(
                 appBar: AppBar(
+                  
+                  actions: <Widget>[isbookmark
+                  ? IconButton(
+                      icon: const Icon(Icons.bookmark_added),
+                      tooltip: 'Remove from bookmarks',
+                      onPressed: () async {
+                        var response = await currSession.delete("/bookmark/${widget.recipeId}");
+                        if (response.statusCode == 200) {
+                          setState(() {
+                            isbookmark = false;
+                          });
+                        }
+                      },
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.bookmark_add),
+                      tooltip: 'Add to Bookmarked',
+                      onPressed: () async {
+                        var response = await currSession.post("/bookmark/${widget.recipeId}",json.encode({}));
+                        if (response.statusCode == 200) {
+                          setState(() {
+                            isbookmark = true;
+                          });
+                        }
+                      },
+                    ),
+                  ],
                   title: Text("${snapshot.data!['title']}"),
                 ),
                 body: Column(
@@ -113,13 +139,11 @@ class _RecipePageState extends State<RecipePage> {
                           }),
                         ),
                       ),
-
                       const Padding(
                         padding:
                             EdgeInsets.only(left: 10, right: 10, bottom: 10),
                         child: Text("Ratings"),
                       ),
-
                       RatingBar.builder(
                         initialRating: 1,
                         minRating: 1,
@@ -131,10 +155,13 @@ class _RecipePageState extends State<RecipePage> {
                           Icons.star,
                           color: Colors.amber,
                         ),
-                        onRatingUpdate: (rating) {
-                          setState(() {
+                        onRatingUpdate: (rating) async {
+                          var response = await currSession.post(
+                              '/rating/${widget.recipeId}',
+                              json.encode({'rating': rating.toInt()}));
+                          if(response.statusCode == 200){
                             new_rating = rating.toInt();
-                          });
+                          }
                         },
                       ),
                       ListTile(

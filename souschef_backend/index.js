@@ -294,6 +294,7 @@ app.get('/recipe/:id', (req, res) => {
     });
 });
 
+// Get Step number :step of recipe with recipeId as :id
 app.get('/step/:id/:step', (req, res) => {
   session = req.session;
   let reqRecipe = null;
@@ -336,7 +337,7 @@ app.get('/step/:id/:step', (req, res) => {
         console.log(model.getDateTime(), 'GET: /recipe/:id/:step', 200);
       }
     });
-})
+});
 
 // Update recipe by id [auth] [Edit recipe View]
 app.post('/recipe/:id', (req, res) => {

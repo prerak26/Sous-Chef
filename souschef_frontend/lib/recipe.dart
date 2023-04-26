@@ -3,6 +3,7 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:souschef_frontend/Steps.dart';
 import 'package:souschef_frontend/widgets.dart';
 
 import 'main.dart';
@@ -18,22 +19,17 @@ class _RecipePageState extends State<RecipePage> {
   Future<Map<String, dynamic>> _fetchrecipe() async {
     final String apiUrl = '/recipe/${widget.recipeId}';
     final response = await currSession.get(apiUrl);
+    
     if (response.statusCode == 200) {
       dynamic t = jsonDecode(response.body);
+      print(t);
       return t;
     } else {
       throw Exception('Failed to load recipe/${widget.recipeId}');
     }
   }
 
-  Future<String> _fetchstep(int step) async {
-    final String apiUrl = '/step/${widget.recipeId}?step=$step';
-    final response = await currSession.get(apiUrl);
 
-    if (response.statusCode == 200) {}
-
-    return "a";
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +37,8 @@ class _RecipePageState extends State<RecipePage> {
         future: _fetchrecipe(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
+            int totalstep = int.parse(snapshot.data!['stepcount']);
+                
             bool isbookmark = snapshot.data!['isbookmarked'] == "true";
             double rating = (snapshot.data!['averagerating'] == 0)
                 ? double.parse(snapshot.data!['averagerating'])
@@ -50,7 +48,32 @@ class _RecipePageState extends State<RecipePage> {
             return Scaffold(
                 appBar: AppBar(
                   
-                  actions: <Widget>[isbookmark
+                  actions: <Widget>[
+                  snapshot.data!['authorid'] == session.id ? 
+                  IconButton(
+                    onPressed: () async{
+                      bool delete = false;
+                      var temp = await showDialog(
+                        context: context, 
+                        builder: (context){
+                          return AlertDialog(
+                            title: Text ('This action will delete this recipe permenantly'),
+                            actions: [
+                              TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
+                              TextButton(onPressed: (){delete = true;Navigator.pop(context);}, child: const Text('Delete')),
+                            ],
+                          );
+                        });
+                        
+                       if(delete) {
+                        var response = await currSession.delete('/recipe/${widget.recipeId}');
+                        Navigator.pop(context);  
+                       }
+                    }, 
+                    icon: const Icon(Icons.delete_forever),
+                    tooltip: 'Delete recipe permenantly',
+                  ):  
+                  isbookmark
                   ? IconButton(
                       icon: const Icon(Icons.bookmark_added),
                       tooltip: 'Remove from bookmarks',
@@ -99,7 +122,7 @@ class _RecipePageState extends State<RecipePage> {
                       Padding(
                         padding:
                             EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                        child: Text("Ready in ${snapshot.data!['duration']}"),
+                        child: Text("Ready in ${snapshot.data!['duration']['hours']?? 0} : ${snapshot.data!['duration']['minute'] ?? 0}"),
                       ),
                       Padding(
                         padding:
@@ -144,49 +167,15 @@ class _RecipePageState extends State<RecipePage> {
                             EdgeInsets.only(left: 10, right: 10, bottom: 10),
                         child: Text("Ratings"),
                       ),
-                      RatingBar.builder(
-                        initialRating: 1,
-                        minRating: 1,
-                        direction: Axis.horizontal,
-                        allowHalfRating: false,
-                        itemCount: 5,
-                        itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                        itemBuilder: (context, _) => Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                        ),
-                        onRatingUpdate: (rating) async {
-                          var response = await currSession.post(
-                              '/rating/${widget.recipeId}',
-                              json.encode({'rating': rating.toInt()}));
-                          if(response.statusCode == 200){
-                            new_rating = rating.toInt();
-                          }
-                        },
-                      ),
+                      
                       ListTile(
                         title: const Text('Follow Steps'),
-                        onTap: () async {
-                          final t = await showDialog<String>(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return FutureBuilder<String>(
-                                    future: _fetchstep(0),
-                                    builder: (context, snapshot) {
-                                      return snapshot.hasData
-                                          ? SimpleDialog(
-                                              title: const Text('Steps'),
-                                              children: [
-                                                Text("step"),
-                                              ],
-                                            )
-                                          : Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            );
-                                    });
-                              });
-                        },
+                        onTap: () {
+                          Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (context) => StepsView(recipeId:widget.recipeId,maxsteps:totalstep)));
+                        
+                        }
                       ),
                     ]));
           } else {

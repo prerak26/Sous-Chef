@@ -30,7 +30,7 @@ void _onCardTap(int id, BuildContext context,obj) {
  Navigator.of(context)
         .push(MaterialPageRoute(
             builder: (context) => RecipePage(recipeId: id)))
-        .then((_){print("calledthis");obj.setState(() {});});
+        .then((_){obj.setState(() {});});
 }
 
 Widget recipeCards(data,obj) {

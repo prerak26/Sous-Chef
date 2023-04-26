@@ -39,7 +39,7 @@ class _HomeViewState extends State<HomeView> {
           duration:
               "${recipeData['duration']['hours']} : ${recipeData['duration']['minutes']}");
     }).toList();
-    print(body);
+    
     List<dynamic> bookmark = body['bookmarks'];
 
     bookmarkcards = bookmark.map((recipeData) {

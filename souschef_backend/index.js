@@ -118,6 +118,7 @@ app.get('/logout', (req, res) => {
 
 // Get chef by id [Chef View]
 app.get('/chef/:id', (req, res) => {
+  session = req.session;
   let filteredResponse = null;
   let errorCaught = null;
   model.getChef(req.params.id)
@@ -129,8 +130,8 @@ app.get('/chef/:id', (req, res) => {
           bookmarks: null,
           recipes: null
         };
-        let bookmark_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified, duration, visibility FROM Recipes WHERE visibility = \'public\')';
-        bookmark_query = bookmark_query.concat(', ', 'bookmarked_recipes AS (SELECT all_recipes.recipeId, title, serves, authorid, lastmodified, duration, visibility FROM all_recipes JOIN (SELECT recipeId from Bookmarks WHERE chefId = \'', filteredResponse.chefId, '\') AS A ON all_recipes.recipeId = A.recipeId)');
+        let bookmark_query = 'WITH bookmarked_ids AS (SELECT recipeId from Bookmarks WHERE chefId = \'' + filteredResponse.chefId + '\' LIMIT 50)';
+        bookmark_query = bookmark_query.concat(', ', 'bookmarked_recipes AS (SELECT * FROM bookmarked_ids NATURAL JOIN recipes where visibility=\'public\')');
         bookmark_query = bookmark_query.concat(model.recipeListQueries('bookmarked_recipes', 'filtered_recipes'));
         bookmark_query = bookmark_query.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY lastmodified DESC)');
         bookmark_query = bookmark_query.concat(' ', 'SELECT * FROM sorted_recipes');
@@ -142,8 +143,12 @@ app.get('/chef/:id', (req, res) => {
             errorCaught = error;
           });
 
-        let recipes_query = 'WITH all_recipes AS (SELECT recipeid, title, serves, authorid, lastmodified, duration, visibility FROM Recipes WHERE authorId = \'' + filteredResponse.chefId + '\')';
-        recipes_query = recipes_query.concat(model.recipeListQueries('all_recipes', 'filtered_recipes'));
+        let recipes_query = 'WITH my_ids AS (SELECT recipeid FROM Recipes WHERE authorId = \'' + filteredResponse.chefId + '\' LIMIT 50)';
+        if(session.userid === filteredResponse.chefId)
+          recipes_query = recipes_query.concat(', ', 'my_recipes AS (SELECT * FROM my_ids NATURAL JOIN recipes)');
+        else
+          recipes_query = recipes_query.concat(', ', 'my_recipes AS (SELECT * FROM my_ids NATURAL JOIN recipes where visibility=\'public\')');      
+        recipes_query = recipes_query.concat(model.recipeListQueries('my_recipes', 'filtered_recipes'));
         recipes_query = recipes_query.concat(', ', 'sorted_recipes AS (SELECT * FROM filtered_recipes ORDER BY lastmodified DESC)');
         recipes_query = recipes_query.concat(' ', 'SELECT * FROM sorted_recipes');
         await model.getRecipes(recipes_query)
@@ -518,9 +523,12 @@ app.get('/recipe', (req, res) => {
     query_str = query_str.concat(', ', 'tagged_ids AS (SELECT tagged.recipeid AS recipeid FROM tagged JOIN given_tags ON tagged.tagid = given_tags.tagid GROUP BY tagged.recipeid HAVING COUNT(tagged.recipeid) = (SELECT count FROM tag_count))');
     filters.push('(SELECT recipeid FROM tagged_ids)');
   }
-  filters.push('(SELECT recipeid FROM recipes WHERE visibility=\'public\')');
+  // filters.push('(SELECT recipeid FROM recipes WHERE visibility=\'public\')');
   // Adding all attributes
-  query_str = query_str.concat(', ', "filtered_ids AS (", filters.join(" INTERSECT "), ')');
+  if (filters.length !== 0)
+    query_str = query_str.concat(', ', "filtered_ids AS (", filters.join(" INTERSECT "), ')');
+  else
+    query_str = query_str.concat(', ', "filtered_ids AS (SELECT recipeid FROM recipes WHERE visibility=\'pub\')");
 
   // Applying sort filter
   if (req.query.sort === undefined) {
@@ -538,8 +546,8 @@ app.get('/recipe', (req, res) => {
   } else {
     query_str = query_str.concat(', ', 'sorted_ids AS (SELECT filtered_ids.recipeid AS recipeid FROM filtered_ids LEFT  JOIN ratings ON filtered_ids.recipeid = ratings.recipeid GROUP BY (filtered_ids.recipeid) ORDER BY COUNT(ratings.rating) DESC');
   }
-  query_str = query_str.concat(' ', 'LIMIT '+req.query.lim+' OFFSET '+req.query.offset+')');
-  query_str = query_str.concat(', ', 'filtered_recipes AS (SELECT * FROM sorted_ids NATURAL JOIN recipes)');
+  query_str = query_str.concat(' ', 'LIMIT ' + req.query.lim + ' OFFSET ' + req.query.offset + ')');
+  query_str = query_str.concat(', ', 'filtered_recipes AS (SELECT * FROM sorted_ids NATURAL JOIN recipes where visibility=\'public\')');
 
   query_str = query_str.concat(model.recipeListQueries('filtered_recipes', 'rich_recipes'));
 

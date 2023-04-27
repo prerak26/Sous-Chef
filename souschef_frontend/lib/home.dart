@@ -84,7 +84,7 @@ class _HomeViewState extends State<HomeView> {
                   onPressed: () {
                     Navigator.of(context)
                         .push(MaterialPageRoute(
-                            builder: (context) => const RecipeForm()))
+                            builder: (context) => const RecipeForm(recipeId: -1,)))
                         .then((_) => setState(() {}));
                   },
                   child: const Icon(

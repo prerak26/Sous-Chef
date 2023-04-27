@@ -4,6 +4,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:souschef_frontend/Steps.dart';
+import 'package:souschef_frontend/recipe_form.dart';
 import 'package:souschef_frontend/widgets.dart';
 
 import 'main.dart';
@@ -50,7 +51,18 @@ class _RecipePageState extends State<RecipePage> {
                   
                   actions: <Widget>[
                   snapshot.data!['authorid'] == session.id ? 
-                  IconButton(
+                  Row(children: [
+                    IconButton(
+                      onPressed: (){
+                        Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (context) => RecipeForm(recipeId: widget.recipeId,)))
+                        .then((_) => setState(() {}));
+                      }, 
+                      icon: const Icon(Icons.edit),
+                      tooltip: "Edit Recipe",
+                      ),
+                    IconButton(
                     onPressed: () async{
                       bool delete = false;
                       var temp = await showDialog(
@@ -72,7 +84,7 @@ class _RecipePageState extends State<RecipePage> {
                     }, 
                     icon: const Icon(Icons.delete_forever),
                     tooltip: 'Delete recipe permenantly',
-                  ):  
+                  )]):  
                   isbookmark
                   ? IconButton(
                       icon: const Icon(Icons.bookmark_added),

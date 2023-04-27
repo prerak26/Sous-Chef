@@ -7,7 +7,8 @@ import 'package:souschef_frontend/main.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 class RecipeForm extends StatefulWidget {
-  const RecipeForm({super.key});
+  final int recipeId;
+  const RecipeForm({super.key, required this.recipeId});
 
   @override
   State<RecipeForm> createState() => _RecipeFormState();
@@ -24,12 +25,48 @@ class _RecipeFormState extends State<RecipeForm> {
 
   List<String> _suggestions = [];
 
+  Future<Map<String, dynamic>> _fetchrecipe() async {
+    if (widget.recipeId != -1) {
+      final String apiUrl = '/recipe/${widget.recipeId}';
+      final response = await currSession.get(apiUrl);
+
+      if (response.statusCode == 200) {
+        dynamic t = jsonDecode(response.body);
+        print(t);
+        if (widget.recipeId != -1) {
+          _nameController.text = t!['title'];
+          _servesController.text = '${t!['serves']}';
+
+          //print(t!['serves']);
+          t!['tags'].forEach((item) {
+            _searchController.text += '${item['name']},';
+          });
+
+          t!['requirements'].forEach((item) {
+            _ingredientController.text += '${item['name']},';
+            Ingredient i = Ingredient(
+                id: item['ingredientid'],
+                name: item['name'],
+                kind: item['kind'],
+                quantity: double.tryParse(item['quantity']));
+            ingredientsub.add(i);
+          });
+        }
+        return t;
+      } else {
+        throw Exception('Failed to load recipe/${widget.recipeId}');
+      }
+    } else {
+      return {"": ""};
+    }
+  }
+
   Future<List<Tag>> _fetchSuggestions(String query) async {
     final String apiUrl = '/tag?key=$query';
     final response = await currSession.get(apiUrl);
     if (response.statusCode == 200) {
       List<dynamic> t = jsonDecode(response.body);
-      
+
       List<Tag> l = t.map((tagData) {
         return Tag(
           tagid: tagData['tagid'],
@@ -82,10 +119,10 @@ class _RecipeFormState extends State<RecipeForm> {
 
   Future<void> _addIngredient(String value, String kind) async {
     const String apiUrl = '/ingredient';
-    
+
     final response = await currSession.post(
         apiUrl, json.encode({'name': value, 'kind': kind}));
-   
+
     if (response.statusCode == 200) {
     } else {
       throw Exception('Failed to add new value');
@@ -110,6 +147,12 @@ class _RecipeFormState extends State<RecipeForm> {
   List<Tag> tagsub = [];
   List<Ingredient> ingredientsub = [];
 
+  @override
+  initState() {
+    super.initState();
+    _fetchrecipe();
+  }
+
   // tag auto complete widget
   Widget tagcomp(BuildContext context) {
     List<String> k;
@@ -117,7 +160,7 @@ class _RecipeFormState extends State<RecipeForm> {
       TypeAheadField(
           textFieldConfiguration: TextFieldConfiguration(
               controller: _searchController,
-              autofocus: true,
+              autofocus: false,
               style: DefaultTextStyle.of(context)
                   .style
                   .copyWith(fontStyle: FontStyle.italic),
@@ -177,7 +220,7 @@ class _RecipeFormState extends State<RecipeForm> {
       TypeAheadField(
           textFieldConfiguration: TextFieldConfiguration(
               controller: _ingredientController,
-              autofocus: true,
+              autofocus: false,
               style: DefaultTextStyle.of(context)
                   .style
                   .copyWith(fontStyle: FontStyle.italic),
@@ -250,7 +293,7 @@ class _RecipeFormState extends State<RecipeForm> {
                   content: Column(children: [
                     TextFormField(
                       controller: _ingredientNameController,
-                      autofocus: true,
+                      autofocus: false,
                       decoration: const InputDecoration(labelText: 'Name'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -261,7 +304,7 @@ class _RecipeFormState extends State<RecipeForm> {
                     ),
                     TextFormField(
                       controller: _ingredientKindController,
-                      autofocus: true,
+                      autofocus: false,
                       decoration: const InputDecoration(
                           labelText: 'Kind of ingredient'),
                       validator: (value) {
@@ -296,6 +339,7 @@ class _RecipeFormState extends State<RecipeForm> {
           }),
     ]);
   }
+
   String ptDuration = "";
   Recipe recipe = Recipe(
       title: "",
@@ -328,17 +372,18 @@ class _RecipeFormState extends State<RecipeForm> {
           await currSession.post('/recipe', jsonEncode(recipe.toJson()));
       if (response.statusCode == 200) {
         Navigator.pop(context);
-      } else {
-        
-      }
+      } else {}
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    //print(widget.recipeId);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Recipe'),
+        title: (widget.recipeId == -1)
+            ? const Text('Add Recipe')
+            : const Text("Update Recipe"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -384,6 +429,90 @@ class _RecipeFormState extends State<RecipeForm> {
               const SizedBox(height: 16),
               ingredientsComp(context),
               const SizedBox(height: 16),
+              
+              LimitedBox(
+                  maxHeight: 200,
+                  child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      separatorBuilder: (_, __) => const Divider(),
+                      itemCount: ingredientsub.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return ListTile(
+                          title: Text(
+                              '${ingredientsub[index].name} ${ingredientsub[index].quantity} ${ingredientsub[index].kind}}'),
+                          trailing:
+                              //SizedBox(width: 0, child:
+                              Wrap(
+                            spacing: 10,
+                            //mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
+                              IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      ingredientsub.removeAt(index);
+                                    });
+                                  },
+                                  icon: const Icon(Icons.delete)),
+                              IconButton(
+                                  onPressed: () async {
+                                    _qunatitycontroller.text =
+                                        '${ingredientsub[index].quantity}';
+                                    await showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Quantity'),
+                                        content: Column(children: [
+                                          TextFormField(
+                                            controller: _qunatitycontroller,
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: <
+                                                TextInputFormatter>[
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly
+                                            ],
+                                            autofocus: true,
+                                            decoration: InputDecoration(
+                                                labelText:
+                                                    'Quantity in ${ingredientsub[index].kind}'),
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Please enter a quantity';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ]),
+                                        actions: [
+                                          TextButton(
+                                            child: const Text('Cancel'),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(),
+                                          ),
+                                          TextButton(
+                                            child: const Text('Add'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+
+                                              setState(() {
+                                                ingredientsub[index].quantity =
+                                                    double.parse(
+                                                        _qunatitycontroller
+                                                            .text);
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.edit))
+                            ],
+                            //)
+                          ),
+                        );
+                      })),
               Row(
                 children: [
                   Checkbox(
@@ -397,8 +526,6 @@ class _RecipeFormState extends State<RecipeForm> {
                   const Text("Make public"),
                 ],
               ),
-              const SizedBox(height: 16),
-
               Text(
                 'Instructions',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -428,7 +555,7 @@ class _RecipeFormState extends State<RecipeForm> {
                                       Column(children: [
                                         TextFormField(
                                           controller: _instcontroller,
-                                          autofocus: true,
+                                          autofocus: false,
                                           decoration: const InputDecoration(
                                               labelText: 'Instruction'),
                                           validator: (value) {
@@ -506,7 +633,15 @@ class _RecipeFormState extends State<RecipeForm> {
                   } else {
                     return ListTile(
                       title: Text(_instructions[index].desc),
-                      trailing: IconButton(
+                      trailing: Wrap(children:[ IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          setState(() {
+                            _instructions.removeAt(index);
+                          });
+                        },
+                      ),
+                      IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {
                           setState(() {
@@ -514,6 +649,7 @@ class _RecipeFormState extends State<RecipeForm> {
                           });
                         },
                       ),
+                      ]),
                     );
                   }
                 },
@@ -521,7 +657,8 @@ class _RecipeFormState extends State<RecipeForm> {
               const SizedBox(height: 16),
 
               TextField(
-                  controller: _durationcontroller, //editing controller of this TextField
+                  controller:
+                      _durationcontroller, //editing controller of this TextField
                   decoration: const InputDecoration(
                       icon: Icon(Icons.calendar_today), //icon of text field
                       labelText: "Enter Duration" //label text of field
@@ -532,9 +669,9 @@ class _RecipeFormState extends State<RecipeForm> {
                     Picker(
                       adapter: NumberPickerAdapter(data: <NumberPickerColumn>[
                         const NumberPickerColumn(
-                          begin: 0, end: 999, suffix: Text(' hours')),
+                            begin: 0, end: 999, suffix: Text(' hours')),
                         const NumberPickerColumn(
-                          columnFlex: 1,
+                            columnFlex: 1,
                             begin: 0,
                             end: 60,
                             suffix: Text(' min'),
@@ -556,18 +693,17 @@ class _RecipeFormState extends State<RecipeForm> {
                       title: const Text('Select duration'),
                       selectedTextStyle: TextStyle(color: Colors.blue),
                       onConfirm: (Picker picker, List<int> value) {
-                        
                         // You get your duration here
                         Duration _duration = Duration(
                             hours: picker.getSelectedValues()[0],
                             minutes: picker.getSelectedValues()[1]);
-                        _durationcontroller.text = "${picker.getSelectedValues()[0]}:${picker.getSelectedValues()[1]}"; 
+                        _durationcontroller.text =
+                            "${picker.getSelectedValues()[0]}:${picker.getSelectedValues()[1]}";
                         setState(() {
-                          ptDuration = "PT${picker.getSelectedValues()[0]}H${picker.getSelectedValues()[1]}M";
+                          ptDuration =
+                              "PT${picker.getSelectedValues()[0]}H${picker.getSelectedValues()[1]}M";
                         });
-
                       },
-                      
                     ).showDialog(context);
                   }),
 

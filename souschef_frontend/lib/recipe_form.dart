@@ -25,6 +25,19 @@ class _RecipeFormState extends State<RecipeForm> {
 
   List<String> _suggestions = [];
 
+    Future<String> _fetchstep(step) async {
+    final String apiUrl = '/step/${widget.recipeId}/$step';
+    final response = await currSession.get(apiUrl);
+
+    String k = "ERROR";
+
+    if (response.statusCode == 200) {
+      k = jsonDecode(response.body)["description"];
+    }
+
+    return k;
+  }
+
   Future<Map<String, dynamic>> _fetchrecipe() async {
     if (widget.recipeId != -1) {
       final String apiUrl = '/recipe/${widget.recipeId}';
@@ -32,7 +45,7 @@ class _RecipeFormState extends State<RecipeForm> {
 
       if (response.statusCode == 200) {
         dynamic t = jsonDecode(response.body);
-        print(t);
+        
         if (widget.recipeId != -1) {
           _nameController.text = t!['title'];
           _servesController.text = '${t!['serves']}';
@@ -52,10 +65,19 @@ class _RecipeFormState extends State<RecipeForm> {
             ingredientsub.add(i);
           });
         }
+
+        
+        for (var i = 0 ; i < int.parse(t!['stepcount']);i++){
+          var res = await _fetchstep(i);  
+          Instruction k = Instruction(desc: res);
+          _instructions.add(k);
+        }
+        _durationcontroller.text = '${t!['duration']['hours']}:${t!['duration']['minutes']}';
         return t;
       } else {
         throw Exception('Failed to load recipe/${widget.recipeId}');
       }
+      
     } else {
       return {"": ""};
     }
@@ -131,7 +153,7 @@ class _RecipeFormState extends State<RecipeForm> {
 
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _ingredientController = TextEditingController();
-  final TextEditingController _qunatitycontroller = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _ingredientNameController =
       TextEditingController();
   final TextEditingController _ingredientKindController =
@@ -244,7 +266,7 @@ class _RecipeFormState extends State<RecipeForm> {
                   title: const Text('Add new value?'),
                   content: Column(children: [
                     TextFormField(
-                      controller: _qunatitycontroller,
+                      controller: _quantityController,
                       keyboardType: TextInputType.number,
                       inputFormatters: <TextInputFormatter>[
                         FilteringTextInputFormatter.digitsOnly
@@ -276,7 +298,7 @@ class _RecipeFormState extends State<RecipeForm> {
                           _ingredientController.text =
                               '${k.join(',')},${sugesstion.name},';
                           Ingredient sub = sugesstion;
-                          sub.quantity = double.parse(_qunatitycontroller.text);
+                          sub.quantity = double.parse(_quantityController.text);
                           ingredientsub.add(sub);
                         });
                       },
@@ -351,6 +373,7 @@ class _RecipeFormState extends State<RecipeForm> {
       duration: "");
 
   void _saveRecipe() async {
+    //if(widget.recipeId==-1){
     if (_formKey.currentState!.validate()) {
       List<Tag> tags = [];
       List<String> tagsstr = _searchController.text.split(',');
@@ -368,12 +391,15 @@ class _RecipeFormState extends State<RecipeForm> {
       recipe.ingredients = ingredientsub;
       recipe.duration = ptDuration;
 
+      print(jsonEncode(recipe.toJson()));
+
       var response =
-          await currSession.post('/recipe', jsonEncode(recipe.toJson()));
+          (widget.recipeId==-1) ? await currSession.post('/recipe', jsonEncode(recipe.toJson())) : await currSession.post('/recipe/${widget.recipeId}', jsonEncode(recipe.toJson()));
       if (response.statusCode == 200) {
         Navigator.pop(context);
-      } else {}
+      }
     }
+    
   }
 
   @override
@@ -440,7 +466,7 @@ class _RecipeFormState extends State<RecipeForm> {
                       itemBuilder: (BuildContext context, int index) {
                         return ListTile(
                           title: Text(
-                              '${ingredientsub[index].name} ${ingredientsub[index].quantity} ${ingredientsub[index].kind}}'),
+                              '${ingredientsub[index].name} ${ingredientsub[index].quantity} ${ingredientsub[index].kind}'),
                           trailing:
                               //SizedBox(width: 0, child:
                               Wrap(
@@ -456,7 +482,7 @@ class _RecipeFormState extends State<RecipeForm> {
                                   icon: const Icon(Icons.delete)),
                               IconButton(
                                   onPressed: () async {
-                                    _qunatitycontroller.text =
+                                    _quantityController.text =
                                         '${ingredientsub[index].quantity}';
                                     await showDialog(
                                       context: context,
@@ -464,7 +490,7 @@ class _RecipeFormState extends State<RecipeForm> {
                                         title: const Text('Quantity'),
                                         content: Column(children: [
                                           TextFormField(
-                                            controller: _qunatitycontroller,
+                                            controller: _quantityController,
                                             keyboardType: TextInputType.number,
                                             inputFormatters: <
                                                 TextInputFormatter>[
@@ -498,7 +524,7 @@ class _RecipeFormState extends State<RecipeForm> {
                                               setState(() {
                                                 ingredientsub[index].quantity =
                                                     double.parse(
-                                                        _qunatitycontroller
+                                                        _quantityController
                                                             .text);
                                               });
                                             },
@@ -567,32 +593,9 @@ class _RecipeFormState extends State<RecipeForm> {
                                             return null;
                                           },
                                         ),
-                                        _suggestions.isNotEmpty
-                                            ? SizedBox(
-                                                height: 200,
-                                                child: ListView.builder(
-                                                  itemCount:
-                                                      _suggestions.length,
-                                                  itemBuilder:
-                                                      (BuildContext context,
-                                                          int index) {
-                                                    return ListTile(
-                                                      title: Text(
-                                                          _suggestions[index]),
-                                                      onTap: () {
-                                                        setState(() {
-                                                          _instcontroller
-                                                                  .text +=
-                                                              _suggestions[
-                                                                  index];
-                                                          _suggestions = [];
-                                                        });
-                                                      },
-                                                    );
-                                                  },
-                                                ),
-                                              )
-                                            : Container(),
+                                        //_suggestions.isNotEmpty
+                                           
+                                            Container(),
                                       ]),
                                     ])),
                                 Row(
@@ -632,15 +635,74 @@ class _RecipeFormState extends State<RecipeForm> {
                     );
                   } else {
                     return ListTile(
+                      onTap: ()async {
+                        {
+                        final instruction = await showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            _instcontroller.text = _instructions[index].desc;
+                            return SimpleDialog(
+                              title: const Text('Edit Instruction'),
+                              children: [
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: Column(children: [
+                                      Column(children: [
+                                        TextFormField(
+                                          controller: _instcontroller,
+                                          autofocus: false,
+                                          decoration: const InputDecoration(
+                                              labelText: 'Instruction'),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Please enter an instruction';
+                                            }
+
+                                            return null;
+                                          },
+                                        ),
+                                        //_suggestions.isNotEmpty
+                                           
+                                            Container(),
+                                      ]),
+                                    ])),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    TextButton(
+                                      child: const Text('Cancel'),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: const Text('Add'),
+                                      onPressed: () {
+                                        final form = _formKey.currentState!;
+                                        if (form.validate()) {
+                                          form.save();
+                                          
+                                          setState(() {
+                                            _instructions[index].desc = _instcontroller.text;
+                                          });
+
+                                          _instcontroller.text = "";
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      };
+                      },
                       title: Text(_instructions[index].desc),
-                      trailing: Wrap(children:[ IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          setState(() {
-                            _instructions.removeAt(index);
-                          });
-                        },
-                      ),
+                      trailing: Wrap(children:[ 
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {

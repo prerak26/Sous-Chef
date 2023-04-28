@@ -12,6 +12,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
@@ -80,58 +81,94 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
+        backgroundColor:
+            widget.caller == "home" ? Colors.lightGreen : Colors.deepOrange,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: _usernameController,
-              onChanged: (value) {
-                setState(() {
-                  //_username = value.trim();
-                });
-              },
-              decoration: const InputDecoration(
-                hintText: 'Enter username',
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              onChanged: (value) {
-                setState(() {
-                  //_password = value.trim();
-                });
-              },
-              decoration: const InputDecoration(
-                hintText: 'Enter password',
-              ),
-            ),
-            Row(
-              children: [
-                Checkbox(
-                  value: _rememberMe,
-                  onChanged: (value) {
-                    setState(() {
-                      _rememberMe = value!;
-                    });
-                  },
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextFormField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Id',
                 ),
-                const Text("Remember me"),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              child: const Text('Login'),
-            ),
-            ElevatedButton(
-              onPressed: _signup,
-              child: const Text('Register'),
-            ),
-          ],
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your User Id';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your Password';
+                  }
+                  return null;
+                },
+              ),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _rememberMe,
+                    activeColor: widget.caller == "home"
+                        ? Colors.lightGreen
+                        : Colors.deepOrange,
+                    onChanged: (value) {
+                      setState(() {
+                        _rememberMe = value!;
+                      });
+                    },
+                  ),
+                  const Text("Remember me"),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _login();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: widget.caller == "home"
+                            ? Colors.lightGreen
+                            : Colors.deepOrange,
+                      ),
+                      child: const Text('Login'),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: ElevatedButton(
+                      onPressed: _signup,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: widget.caller == "home"
+                            ? Colors.lightGreen
+                            : Colors.deepOrange,
+                      ),
+                      child: const Text('Register'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

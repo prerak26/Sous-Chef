@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:google_fonts/google_fonts.dart';
+
 import 'package:flutter/material.dart';
 import 'package:souschef_frontend/main.dart';
 import 'package:souschef_frontend/recipe.dart';
@@ -14,8 +16,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  
-
   List<Cards> cards = [];
   List<Cards> bookmarkcards = [];
   // ignore: prefer_typing_uninitialized_variables
@@ -39,7 +39,7 @@ class _HomeViewState extends State<HomeView> {
           duration:
               "${recipeData['duration']['hours']} : ${recipeData['duration']['minutes']}");
     }).toList();
-    
+
     List<dynamic> bookmark = body['bookmarks'];
 
     bookmarkcards = bookmark.map((recipeData) {
@@ -61,75 +61,108 @@ class _HomeViewState extends State<HomeView> {
   //TabController _controller = new TabController();
 
   Widget display(data) {
-    return Container(
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            SizedBox(height: 20.0),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Column(children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10, bottom: 20),
-                  child: Text("Id : ${data.chefid}"),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(left: 10, top: 10, bottom: 20),
-                  child: Text("Name : ${data.name}"),
-                )
-              ]),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const SizedBox(height: 20.0),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Column(children: [
+            Row(children: [
               Padding(
-                padding: EdgeInsets.only(right: 15),
-                child: FloatingActionButton(
-                  backgroundColor: Colors.amberAccent,
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(
-                            builder: (context) => const RecipeForm(recipeId: -1,)))
-                        .then((_) => setState(() {}));
-                  },
-                  child: const Icon(
-                    Icons.add,
-                    size: 35,
-                    color: Colors.black,
+                padding: const EdgeInsets.only(left: 16, right: 12, top: 8),
+                child: Text(
+                  'Chef',
+                  style: GoogleFonts.parisienne(
+                    fontSize: 55,
+                    // fontWeight: FontWeight.bold,
+                    color: Colors.lightGreen,
                   ),
                 ),
-              )
+              ),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, right: 8),
+                  child: Text(
+                    data.name,
+                    style: GoogleFonts.merriweather(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      // color: Colors.grey,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8, right: 8),
+                  child: Text(
+                    '@${data.chefid}',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ),
+              ]),
             ]),
-            DefaultTabController(
-                length: 2, // length of tabs
-                initialIndex: 0,
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Container(
-                        child: TabBar(
-                          onTap: (value) {
-                            setState(() {});
-                          },
-                          labelColor: Colors.green,
-                          unselectedLabelColor: Colors.black,
-                          tabs: [
-                            Tab(text: 'My Recipes'),
-                            Tab(text: 'Bookmarks'),
-                          ],
-                        ),
-                      ),
-                      Container(
-                          height: 400, //height of TabBarView
-                          decoration: BoxDecoration(
-                              border: Border(
-                                  top: BorderSide(
-                                      color: Colors.grey, width: 0.5))),
-                          child: TabBarView(children: <Widget>[
-                            Container(
-                              child: recipeCards(cards,this),
-                            ),
-                            Container(
-                              child: recipeCards(bookmarkcards,this),
-                            ),
-                          ]))
-                    ])),
           ]),
+          Padding(
+            padding: const EdgeInsets.only(right: 15),
+            child: FloatingActionButton(
+              backgroundColor: Colors.lightGreen,
+              tooltip: 'Create new recipe',
+              onPressed: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(
+                      builder: (context) => const RecipeForm(
+                        recipeId: -1,
+                      ),
+                    ))
+                    .then((_) => setState(() {}));
+              },
+              child: const Icon(
+                Icons.add,
+                size: 35,
+                color: Colors.black,
+              ),
+            ),
+          )
+        ]),
+        DefaultTabController(
+          length: 2, // length of tabs
+          initialIndex: 0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              TabBar(
+                onTap: (value) {
+                  setState(() {});
+                },
+                labelColor: Colors.lightGreen,
+                unselectedLabelColor: Colors.grey,
+                tabs: const [
+                  Tab(text: 'My Recipes'),
+                  Tab(text: 'Bookmarks'),
+                ],
+                indicatorColor: Colors.lightGreen,
+              ),
+              Container(
+                height: 400, //height of TabBarView
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.grey, width: 0.5),
+                  ),
+                ),
+                child: TabBarView(
+                  children: <Widget>[
+                    Container(
+                      child: recipeCards(cards, this),
+                    ),
+                    Container(
+                      child: recipeCards(bookmarkcards, this),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -156,7 +189,10 @@ class _HomeViewState extends State<HomeView> {
             },
           ),
         ],
-        title: const Text('My Recipies'),
+        backgroundColor: Colors.lightGreen,
+        title: const Center(
+          child: Text('Home'),
+        ),
         automaticallyImplyLeading: false,
       ),
       body: FutureBuilder(
@@ -164,7 +200,11 @@ class _HomeViewState extends State<HomeView> {
           builder: (context, snapshot) {
             return snapshot.hasData
                 ? display(snapshot.data)
-                : const Center(child: CircularProgressIndicator());
+                : const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.lightGreen,
+                    ),
+                  );
           }),
     );
   }

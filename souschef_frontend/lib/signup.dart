@@ -61,6 +61,8 @@ class _SignupViewState extends State<SignupView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Registration'),
+        backgroundColor:
+            widget.caller == "home" ? Colors.lightGreen : Colors.deepOrange,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -80,6 +82,14 @@ class _SignupViewState extends State<SignupView> {
                   }
                   return null;
                 },
+                style: TextStyle(
+                  color: widget.caller == "home"
+                      ? Colors.lightGreen
+                      : Colors.deepOrange,
+                  decorationColor: widget.caller == "home"
+                      ? Colors.lightGreen
+                      : Colors.deepOrange,
+                ),
               ),
               TextFormField(
                 controller: _idController,
@@ -115,6 +125,9 @@ class _SignupViewState extends State<SignupView> {
                         _rememberMe = value!;
                       });
                     },
+                    activeColor: widget.caller == "home"
+                        ? Colors.lightGreen
+                        : Colors.deepOrange,
                   ),
                   const Text("Remember me"),
                 ],
@@ -127,6 +140,11 @@ class _SignupViewState extends State<SignupView> {
                       _registerUser();
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.caller == "home"
+                        ? Colors.lightGreen
+                        : Colors.deepOrange,
+                  ),
                   child: const Text('Register'),
                 ),
               ),

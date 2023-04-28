@@ -114,6 +114,7 @@ const getRecipeStep = (id, step) => {
 
 const getRecipes = (query_str) => {
   const QUERYSTR = query_str;
+  console.log(QUERYSTR);
   return new Promise((resolve, reject) => {
     pool.query(QUERYSTR, [], (error, results) => {
       if (error)

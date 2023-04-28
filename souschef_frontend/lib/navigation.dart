@@ -11,6 +11,8 @@ List<PersistentBottomNavBarItem> _navBarItems() {
     PersistentBottomNavBarItem(
       icon: const Icon(Icons.home),
       title: 'Home',
+      activeColorPrimary: Colors.lightGreen,
+      activeColorSecondary: Colors.lightGreen,
       routeAndNavigatorSettings: const RouteAndNavigatorSettings(
         initialRoute: "/",
         onGenerateRoute: RouteGenerator.generateRoute,
@@ -19,6 +21,8 @@ List<PersistentBottomNavBarItem> _navBarItems() {
     PersistentBottomNavBarItem(
       icon: const Icon(Icons.search),
       title: 'Discover',
+      activeColorPrimary: Colors.amber,
+      activeColorSecondary: Colors.amber,
       routeAndNavigatorSettings: const RouteAndNavigatorSettings(
         initialRoute: "/",
         onGenerateRoute: RouteGenerator.generateRoute,
@@ -27,6 +31,8 @@ List<PersistentBottomNavBarItem> _navBarItems() {
     PersistentBottomNavBarItem(
       icon: const Icon(Icons.add_box),
       title: 'Shopping List',
+      activeColorPrimary: Colors.deepOrange,
+      activeColorSecondary: Colors.deepOrange,
       routeAndNavigatorSettings: const RouteAndNavigatorSettings(
         initialRoute: "/",
         onGenerateRoute: RouteGenerator.generateRoute,

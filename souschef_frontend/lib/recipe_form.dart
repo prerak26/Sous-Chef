@@ -25,7 +25,7 @@ class _RecipeFormState extends State<RecipeForm> {
 
   List<String> _suggestions = [];
 
-    Future<String> _fetchstep(step) async {
+  Future<String> _fetchstep(step) async {
     final String apiUrl = '/step/${widget.recipeId}/$step';
     final response = await currSession.get(apiUrl);
 
@@ -45,7 +45,7 @@ class _RecipeFormState extends State<RecipeForm> {
 
       if (response.statusCode == 200) {
         dynamic t = jsonDecode(response.body);
-        
+
         if (widget.recipeId != -1) {
           _nameController.text = t!['title'];
           _servesController.text = '${t!['serves']}';
@@ -66,18 +66,17 @@ class _RecipeFormState extends State<RecipeForm> {
           });
         }
 
-        
-        for (var i = 0 ; i < int.parse(t!['stepcount']);i++){
-          var res = await _fetchstep(i);  
+        for (var i = 0; i < int.parse(t!['stepcount']); i++) {
+          var res = await _fetchstep(i + 1);
           Instruction k = Instruction(desc: res);
           _instructions.add(k);
         }
-        _durationcontroller.text = '${t!['duration']['hours']}:${t!['duration']['minutes']}';
+        _durationcontroller.text =
+            '${t!['duration']['hours'] ?? 00}:${t!['duration']['minutes'] ?? 00}';
         return t;
       } else {
         throw Exception('Failed to load recipe/${widget.recipeId}');
       }
-      
     } else {
       return {"": ""};
     }
@@ -393,13 +392,14 @@ class _RecipeFormState extends State<RecipeForm> {
 
       print(jsonEncode(recipe.toJson()));
 
-      var response =
-          (widget.recipeId==-1) ? await currSession.post('/recipe', jsonEncode(recipe.toJson())) : await currSession.post('/recipe/${widget.recipeId}', jsonEncode(recipe.toJson()));
+      var response = (widget.recipeId == -1)
+          ? await currSession.post('/recipe', jsonEncode(recipe.toJson()))
+          : await currSession.post(
+              '/recipe/${widget.recipeId}', jsonEncode(recipe.toJson()));
       if (response.statusCode == 200) {
         Navigator.pop(context);
       }
     }
-    
   }
 
   @override
@@ -455,7 +455,7 @@ class _RecipeFormState extends State<RecipeForm> {
               const SizedBox(height: 16),
               ingredientsComp(context),
               const SizedBox(height: 16),
-              
+
               LimitedBox(
                   maxHeight: 200,
                   child: ListView.separated(
@@ -594,8 +594,8 @@ class _RecipeFormState extends State<RecipeForm> {
                                           },
                                         ),
                                         //_suggestions.isNotEmpty
-                                           
-                                            Container(),
+
+                                        Container(),
                                       ]),
                                     ])),
                                 Row(
@@ -635,82 +635,84 @@ class _RecipeFormState extends State<RecipeForm> {
                     );
                   } else {
                     return ListTile(
-                      onTap: ()async {
+                      onTap: () async {
                         {
-                        final instruction = await showDialog<String>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            _instcontroller.text = _instructions[index].desc;
-                            return SimpleDialog(
-                              title: const Text('Edit Instruction'),
-                              children: [
-                                Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 8),
-                                    child: Column(children: [
-                                      Column(children: [
-                                        TextFormField(
-                                          controller: _instcontroller,
-                                          autofocus: false,
-                                          decoration: const InputDecoration(
-                                              labelText: 'Instruction'),
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Please enter an instruction';
-                                            }
+                          final instruction = await showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              _instcontroller.text = _instructions[index].desc;
+                              return SimpleDialog(
+                                title: const Text('Edit Instruction'),
+                                children: [
+                                  Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      child: Column(children: [
+                                        Column(children: [
+                                          TextFormField(
+                                            controller: _instcontroller,
+                                            autofocus: false,
+                                            decoration: const InputDecoration(
+                                                labelText: 'Instruction'),
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Please enter an instruction';
+                                              }
 
-                                            return null;
-                                          },
-                                        ),
-                                        //_suggestions.isNotEmpty
-                                           
-                                            Container(),
-                                      ]),
-                                    ])),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    TextButton(
-                                      child: const Text('Cancel'),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                    TextButton(
-                                      child: const Text('Add'),
-                                      onPressed: () {
-                                        final form = _formKey.currentState!;
-                                        if (form.validate()) {
-                                          form.save();
-                                          
-                                          setState(() {
-                                            _instructions[index].desc = _instcontroller.text;
-                                          });
+                                              return null;
+                                            },
+                                          ),
+                                          //_suggestions.isNotEmpty
 
-                                          _instcontroller.text = "";
+                                          Container(),
+                                        ]),
+                                      ])),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      TextButton(
+                                        child: const Text('Cancel'),
+                                        onPressed: () {
                                           Navigator.pop(context);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      };
+                                        },
+                                      ),
+                                      TextButton(
+                                        child: const Text('Add'),
+                                        onPressed: () {
+                                          final form = _formKey.currentState!;
+                                          if (form.validate()) {
+                                            form.save();
+
+                                            setState(() {
+                                              _instructions[index].desc =
+                                                  _instcontroller.text;
+                                            });
+
+                                            _instcontroller.text = "";
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                        ;
                       },
                       title: Text(_instructions[index].desc),
-                      trailing: Wrap(children:[ 
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            _instructions.removeAt(index);
-                          });
-                        },
-                      ),
+                      trailing: Wrap(children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              _instructions.removeAt(index);
+                            });
+                          },
+                        ),
                       ]),
                     );
                   }

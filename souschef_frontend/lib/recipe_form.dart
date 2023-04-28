@@ -171,7 +171,9 @@ class _RecipeFormState extends State<RecipeForm> {
   @override
   initState() {
     super.initState();
-    _fetchrecipe();
+    _fetchrecipe().then((value) {setState(() {
+      
+    });});
   }
 
   // tag auto complete widget

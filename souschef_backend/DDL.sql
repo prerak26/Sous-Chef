@@ -35,7 +35,7 @@ create TABLE Steps
     (
         recipeId INT not null,
         stepNumber INT not null,
-        description VARCHAR(201) not null,
+        description VARCHAR(101) not null,
         primary key (recipeId, stepNumber),
         foreign key (recipeId) references Recipes on delete cascade
     );

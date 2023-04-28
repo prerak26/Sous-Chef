@@ -35,83 +35,103 @@ class _StepsViewState extends State<StepsView> {
         builder: (context, snapshot) {
           return snapshot.hasData
               ? Scaffold(
-                  appBar: AppBar(
-                    title: (index == widget.maxsteps + 1) ? const Text("Rate Recipe"): Text("Step $index") ,
-                  ),
-                  body: (index == widget.maxsteps + 1)
-                      ? Column(children: [
-                          RatingBar.builder(
-                            initialRating: 1,
-                            minRating: 1,
-                            direction: Axis.horizontal,
-                            allowHalfRating: false,
-                            itemCount: 5,
-                            itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                            itemBuilder: (context, _) => Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                            ),
-                            onRatingUpdate: (rating) async {
-                              new_rating = rating.toInt();
-                            },
-                          ),
-                          SizedBox(height: 20),
-                          TextButton(
-                              onPressed: () async {
-                                var response = await currSession.post(
-                                    '/rating/${widget.recipeId}',
-                                    json.encode({'rating': new_rating}));
-                                if (response.statusCode == 200) {
-                                  Navigator.pop(context);  
-                                }
-                              },
-                              child: const Text("Rate"))
-                        ])
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                              Text(snapshot.data!),
-                              const SizedBox(height: 20),
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    (index != 1)
-                                        ? TextButton(
-                                            child: const Text('PrevStep'),
-                                            onPressed: () {
-                                              setState(() {
-                                                index -= 1;
-                                              });
-                                            },
-                                          )
-                                        : TextButton(
-                                            child: const Text(
-                                                'Back to Reicpe Page'),
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                          ),
-                                    (index != widget.maxsteps)
-                                        ? TextButton(
-                                            child: const Text('NextStep'),
-                                            onPressed: () {
-                                              setState(() {
-                                                index += 1;
-                                              });
-                                            },
-                                          )
-                                        : TextButton(
-                                            child: const Text('Rate Recipe'),
-                                            onPressed: () {
-                                              setState(() {
-                                                index += 1;
-                                              });
-                                            },
-                                          )
-                                  ])
-                            ]),
-                )
+  appBar: AppBar(
+    title: (index == widget.maxsteps + 1) 
+      ? const Text("Rate Recipe")
+      : Text("Step $index"),
+  ),
+  body: (index == widget.maxsteps + 1)
+    ? Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 20),
+        Center(
+          child: RatingBar.builder(
+            initialRating: 1,
+            minRating: 1,
+            direction: Axis.horizontal,
+            allowHalfRating: false,
+            itemCount: 5,
+            itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+            itemBuilder: (context, _) => Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+            onRatingUpdate: (rating) async {
+              new_rating = rating.toInt();
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: TextButton(
+            onPressed: () async {
+              var response = await currSession.post(
+                '/rating/${widget.recipeId}',
+                json.encode({'rating': new_rating})
+              );
+              if (response.statusCode == 200) {
+                Navigator.pop(context);  
+              }
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.amber,
+              primary: Colors.white,
+            ),
+            child: const Text("Rate Recipe", style: TextStyle(fontSize: 18)),
+          ),
+        ),
+      ],
+    )
+    : Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+          child: Text(snapshot.data!, style: TextStyle(fontSize: 18)),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            (index != 1)
+              ? TextButton(
+                child: const Text('Prev Step', style: TextStyle(fontSize: 18)),
+                onPressed: () {
+                  setState(() {
+                    index -= 1;
+                  });
+                },
+              )
+              : TextButton(
+                child: const Text('Back to Recipe Page', style: TextStyle(fontSize: 18)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            (index != widget.maxsteps)
+              ? TextButton(
+                child: const Text('Next Step', style: TextStyle(fontSize: 18)),
+                onPressed: () {
+                  setState(() {
+                    index += 1;
+                  });
+                },
+              )
+              : TextButton(
+                child: const Text('Rate Recipe', style: TextStyle(fontSize: 18)),
+                onPressed: () {
+                  setState(() {
+                    index += 1;
+                  });
+                },
+              ),
+          ]
+        ),
+      ],
+    ),
+)
+
+
               : const Center(child: CircularProgressIndicator());
         });
   }

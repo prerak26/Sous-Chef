@@ -46,6 +46,7 @@ class _RecipePageState extends State<RecipePage> {
             int new_rating = 0;
             String k = snapshot.data!['lastmodified'];
             return Scaffold(
+                
                 appBar: AppBar(
                   actions: <Widget>[
                     snapshot.data!['authorid'] == session.id
@@ -180,10 +181,14 @@ class _RecipePageState extends State<RecipePage> {
                                 backgroundColor: Colors.lightBlue,
                                 tooltip: 'Follow Steps',
                                 onPressed: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => StepsView(
-                                          recipeId: widget.recipeId,
-                                          maxsteps: totalstep)));
+                                  Navigator.of(context)
+                                      .push(MaterialPageRoute(
+                                          builder: (context) => StepsView(
+                                              recipeId: widget.recipeId,
+                                              maxsteps: totalstep)))
+                                      .then((_) {
+                                    setState(() {});
+                                  });
                                 },
                                 child: const Icon(
                                   Icons.play_arrow,
@@ -191,7 +196,7 @@ class _RecipePageState extends State<RecipePage> {
                                   color: Colors.black,
                                 ),
                               ),
-                            )
+                            ),
                           ]),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -279,17 +284,43 @@ class _RecipePageState extends State<RecipePage> {
                         ],
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(
-                            top: 10, left: 10, right: 10, bottom: 10),
-                        child: Text(
-                          'Ingredients',
-                          style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.lightBlue,
-                          ),
-                        ),
-                      ),
+                          padding: const EdgeInsets.only(
+                              top: 30, left: 10, right: 10, bottom: 10),
+                          child: Row(children: [
+                            Text(
+                              'Ingredients',
+                              style: TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.lightBlue,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10),
+                              child: FloatingActionButton.small(
+                                backgroundColor: Colors.lightBlue,
+                                tooltip: 'Add ingredients to cart',
+                                onPressed: () async {
+                                  var response = await currSession.post(
+                                      "/recipe/shop/${widget.recipeId}",
+                                      jsonEncode({}));
+                                  if (response.statusCode == 200) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(const SnackBar(
+                                          duration: Duration(seconds: 0, milliseconds: 500),
+                                      content:
+                                          Text('Added to shopping list'),
+                                    ));
+                                  }
+                                },
+                                child: const Icon(
+                                  Icons.add_shopping_cart_sharp,
+                                  size: 15,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            )
+                          ])),
                       Padding(
                         padding: const EdgeInsets.only(
                             left: 10, right: 10, bottom: 10),
@@ -330,8 +361,8 @@ class _RecipePageState extends State<RecipePage> {
                       Row(
                         children: [
                           const Padding(
-                            padding: EdgeInsets.only(
-                                left: 10, right: 10, bottom: 10),
+                            padding: EdgeInsets.only(top:15,
+                                left: 10, right: 10, bottom: 20),
                             child: Text(
                               'Ratings',
                               style: TextStyle(
@@ -343,7 +374,7 @@ class _RecipePageState extends State<RecipePage> {
                           ),
                           Expanded(
                             child: Text(
-                              '${double.parse(snapshot.data!['averagerating']??'-1')}/5 - ${snapshot.data!['ratingtotal']}(votes)',
+                              '${(double.parse(snapshot.data!['averagerating'] ?? '-1') == -1) ? '-' : double.parse(snapshot.data!['averagerating'])}/5 - ${snapshot.data!['ratingtotal'] ?? 0}(votes)',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.normal,

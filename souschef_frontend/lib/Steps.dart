@@ -84,15 +84,17 @@ class _StepsViewState extends State<StepsView> {
       ],
     )
     : Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-          child: Text(snapshot.data!, style: TextStyle(fontSize: 18)),
+          child: Text(snapshot.data!, style: TextStyle(fontSize: 30)),
         ),
-        Row(
+        Padding(padding: const EdgeInsets.all(20),
+              child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
+            
             (index != 1)
               ? TextButton(
                 child: const Text('Prev Step', style: TextStyle(fontSize: 18)),
@@ -127,6 +129,8 @@ class _StepsViewState extends State<StepsView> {
               ),
           ]
         ),
+            ),
+        
       ],
     ),
 )

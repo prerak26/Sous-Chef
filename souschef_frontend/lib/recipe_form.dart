@@ -73,6 +73,7 @@ class _RecipeFormState extends State<RecipeForm> {
         }
         _durationcontroller.text =
             '${t!['duration']['hours'] ?? 00}:${t!['duration']['minutes'] ?? 00}';
+        ptDuration = 'PT${t!['duration']['hours'] ?? 00}H${t!['duration']['minutes'] ?? 00}M';
         return t;
       } else {
         throw Exception('Failed to load recipe/${widget.recipeId}');

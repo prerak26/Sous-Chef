@@ -65,7 +65,7 @@ class _HomeViewState extends State<HomeView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SizedBox(height: 20.0),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Wrap(children: [
           Column(children: [
             Row(children: [
               Padding(
@@ -103,7 +103,7 @@ class _HomeViewState extends State<HomeView> {
           ]),
           Padding(
             padding: const EdgeInsets.only(right: 15),
-            child: FloatingActionButton(
+            child: FloatingActionButton.small(
               backgroundColor: Colors.lightGreen,
               tooltip: 'Create new recipe',
               onPressed: () {

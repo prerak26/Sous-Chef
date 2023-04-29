@@ -35,7 +35,6 @@ var session;
 
 // Backend index page [auth]
 app.get('/', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -59,8 +58,8 @@ app.post('/login', (req, res) => {
     .then(response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.body.pswd, response[0].hashedpassword))
         || (req.body.id === process.env.user && req.body.pswd === process.env.password)) {
-        session = req.session;
-        req.headers.userid = req.body.id;
+        // session = req.session;
+        // req.headers.userid = req.body.id;
         res.status(200).send({ message: "Logged in successfully" });
         console.log(model.getDateTime(), 'POST: /login', 200);
       }
@@ -104,7 +103,6 @@ app.post('/signup', (req, res) => {
 
 // Check authorisation [auth]
 app.get('/auth', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -124,7 +122,6 @@ app.get('/auth', (req, res) => {
 
 // Logout user [auth] [Logout button]
 app.get('/logout', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -145,7 +142,6 @@ app.get('/logout', (req, res) => {
 
 // Get chef by id [Chef View]
 app.get('/chef/:id', (req, res) => {
-  session = req.session;
   let filteredResponse = null;
   let errorCaught = null;
   model.getChef(req.params.id)
@@ -228,7 +224,6 @@ app.get('/chef', (req, res) => {
 
 // Create recipe [auth] [Add recipe view]
 app.post('/recipe', (req, res) => {
-  session = req.session;
   let errorCaught = null;
   let recipeId = null;
   model.getChef(req.headers.userid)
@@ -288,7 +283,6 @@ app.post('/recipe', (req, res) => {
 
 // Get recipe by id [Recipe View]
 app.get('/recipe/:id', (req, res) => {
-  session = req.session;
   let reqRecipe = null;
   let errorCaught = null;
   model.getRecipe(parseInt(req.params.id), req.headers.userid)
@@ -336,7 +330,6 @@ app.get('/recipe/:id', (req, res) => {
 
 // Get recipe step by recipeId and stepNumber [Step View]
 app.get('/step/:id/:step', (req, res) => {
-  session = req.session;
   let reqRecipe = null;
   let reqStep = null;
   let errorCaught = null;
@@ -381,7 +374,6 @@ app.get('/step/:id/:step', (req, res) => {
 
 // Update recipe by id [auth] [Edit recipe View]
 app.post('/recipe/:id', (req, res) => {
-  session = req.session;
   let errorCaught = null;
   let reqRecipe = null;
   model.getChef(req.headers.userid)
@@ -470,7 +462,6 @@ app.post('/recipe/:id', (req, res) => {
 
 // Delete recipe by id [auth] [Delete recipe button]
 app.delete('/recipe/:id', (req, res) => {
-  session = req.session;
   let errorCaught = null;
   let reqRecipe = null;
   model.getChef(req.headers.userid)
@@ -520,7 +511,6 @@ app.delete('/recipe/:id', (req, res) => {
 
 // Add all ingredients of recipe to shopping list by id [auth] [Add recipe to shopping list button]
 app.post('/recipe/shop/:id', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -552,7 +542,6 @@ app.post('/recipe/shop/:id', (req, res) => {
 
 // Get recipes list [Discover View]
 app.get('/recipe', (req, res) => {
-  session = req.session;
   // console.log(req.query);
   let query_str = 'WITH boo AS (SELECT 1 AS bo)';
   let filters = [];
@@ -645,7 +634,6 @@ app.get('/recipe', (req, res) => {
 
 // Create ingredient [auth] [Create ingredient view]
 app.post('/ingredient', (req, res) => {
-  session = req.session;
   let errorCaught = null;
   let ingredientId = null;
   model.getChef(req.headers.userid)
@@ -729,7 +717,6 @@ app.get('/recipes', (req, res) => {
 
 // Create Tag [auth] [Create tag view]
 app.post('/tag', (req, res) => {
-  session = req.session;
   let errorCaught = null;
   let tagId = null;
   model.getChef(req.headers.userid)
@@ -791,7 +778,6 @@ app.get('/tag', (req, res) => {
 
 // Create a bookmark [auth] [Bookmark button]
 app.post('/bookmark/:id', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -818,7 +804,6 @@ app.post('/bookmark/:id', (req, res) => {
 
 // Remove bookmark [auth] [Remove Bookmark button]
 app.delete('/bookmark/:id', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -845,7 +830,6 @@ app.delete('/bookmark/:id', (req, res) => {
 
 // Rate a recipe (New or Update) [auth] [Rate recipe button]
 app.post('/rating/:id', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -872,7 +856,6 @@ app.post('/rating/:id', (req, res) => {
 
 // Unrate a recipe [auth] [Unrate recipe button]
 app.delete('/rating/:id', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -900,7 +883,6 @@ app.delete('/rating/:id', (req, res) => {
 // Get user shopping list by id [auth] [Shopping List View]
 app.get('/shoppinglist', (req, res) => {
   console.log(req.headers);
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))
@@ -927,7 +909,6 @@ app.get('/shoppinglist', (req, res) => {
 
 // Create ingredient in shopping list by id [auth] [Add ingredient to shopping list view]
 app.post('/shoppinglist/:id', (req, res) => {
-  session = req.session;
   let errorCaught = null;
   model.getChef(req.headers.userid)
     .then(async response => {
@@ -966,7 +947,6 @@ app.post('/shoppinglist/:id', (req, res) => {
 
 // Delete ingredient in shopping list by id [auth] [Delete ingredient from shopping list view]
 app.delete('/shoppinglist/:id', (req, res) => {
-  session = req.session;
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))

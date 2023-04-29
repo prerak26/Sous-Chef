@@ -46,7 +46,6 @@ class _RecipePageState extends State<RecipePage> {
             int new_rating = 0;
             String k = snapshot.data!['lastmodified'];
             return Scaffold(
-                
                 appBar: AppBar(
                   actions: <Widget>[
                     snapshot.data!['authorid'] == session.id
@@ -131,73 +130,70 @@ class _RecipePageState extends State<RecipePage> {
                 body: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(children: [
-                              Row(children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 16, right: 12, top: 8),
-                                  child: Text(
-                                    'Recipe',
-                                    style: GoogleFonts.parisienne(
-                                      fontSize: 55,
-                                      // fontWeight: FontWeight.bold,
-                                      color: Colors.lightBlue,
-                                    ),
-                                  ),
-                                ),
-                                Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 8, right: 8),
-                                        child: Text(
-                                          snapshot.data!['title'],
-                                          style: GoogleFonts.merriweather(
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold,
-                                            // color: Colors.grey,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            bottom: 8, right: 8),
-                                        child: Text(
-                                          '@${snapshot.data!['authorid']}',
-                                          style: const TextStyle(fontSize: 20),
-                                        ),
-                                      ),
-                                    ]),
-                              ]),
-                            ]),
+                      Wrap(children: [
+                        Column(children: [
+                          Row(children: [
                             Padding(
-                              padding: const EdgeInsets.only(right: 15),
-                              child: FloatingActionButton(
-                                backgroundColor: Colors.lightBlue,
-                                tooltip: 'Follow Steps',
-                                onPressed: () {
-                                  Navigator.of(context)
-                                      .push(MaterialPageRoute(
-                                          builder: (context) => StepsView(
-                                              recipeId: widget.recipeId,
-                                              maxsteps: totalstep)))
-                                      .then((_) {
-                                    setState(() {});
-                                  });
-                                },
-                                child: const Icon(
-                                  Icons.play_arrow,
-                                  size: 35,
-                                  color: Colors.black,
+                              padding: const EdgeInsets.only(
+                                  left: 16, right: 12, top: 8),
+                              child: Text(
+                                'Recipe',
+                                style: GoogleFonts.parisienne(
+                                  fontSize: 55,
+                                  // fontWeight: FontWeight.bold,
+                                  color: Colors.lightBlue,
                                 ),
                               ),
                             ),
+                            Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.only(top: 8, right: 8),
+                                    child: Text(
+                                      snapshot.data!['title'],
+                                      style: GoogleFonts.merriweather(
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
+                                        // color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        bottom: 8, right: 8),
+                                    child: Text(
+                                      '@${snapshot.data!['authorid']}',
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                  ),
+                                ]),
                           ]),
+                        ]),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 15),
+                          child: FloatingActionButton.small(
+                            backgroundColor: Colors.lightBlue,
+                            tooltip: 'Follow Steps',
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) => StepsView(
+                                          recipeId: widget.recipeId,
+                                          maxsteps: totalstep)))
+                                  .then((_) {
+                                setState(() {});
+                              });
+                            },
+                            child: const Icon(
+                              Icons.play_arrow,
+                              size: 35,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ]),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -287,7 +283,7 @@ class _RecipePageState extends State<RecipePage> {
                           padding: const EdgeInsets.only(
                               top: 30, left: 10, right: 10, bottom: 10),
                           child: Row(children: [
-                            Text(
+                            const Text(
                               'Ingredients',
                               style: TextStyle(
                                 fontSize: 25,
@@ -304,12 +300,13 @@ class _RecipePageState extends State<RecipePage> {
                                   var response = await currSession.post(
                                       "/recipe/shop/${widget.recipeId}",
                                       jsonEncode({}));
-                                  if (response.statusCode == 200) {
+                                  if (response.statusCode == 200 &&
+                                      context.mounted) {
                                     ScaffoldMessenger.of(context)
                                         .showSnackBar(const SnackBar(
-                                          duration: Duration(seconds: 0, milliseconds: 500),
-                                      content:
-                                          Text('Added to shopping list'),
+                                      duration: Duration(
+                                          seconds: 0, milliseconds: 500),
+                                      content: Text('Added to shopping list'),
                                     ));
                                   }
                                 },
@@ -361,8 +358,8 @@ class _RecipePageState extends State<RecipePage> {
                       Row(
                         children: [
                           const Padding(
-                            padding: EdgeInsets.only(top:15,
-                                left: 10, right: 10, bottom: 20),
+                            padding: EdgeInsets.only(
+                                top: 15, left: 10, right: 10, bottom: 20),
                             child: Text(
                               'Ratings',
                               style: TextStyle(

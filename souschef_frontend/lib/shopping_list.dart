@@ -75,27 +75,28 @@ class _ShoppingListViewState extends State<ShoppingListView> {
       return authorisationPage(context, "shopping-list");
     }
     return Scaffold(
-        appBar: AppBar(
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Logout',
-              onPressed: () async {
-                var response = await currSession.get("/logout");
-                if (response.statusCode == 200) {
-                  setState(() {
-                    session.isLogged = false;
-                    session.id = null;
-                    session.pswd = null;
-                  });
-                }
-              },
-            ),
-          ],
-          title: const Text('Shopping List'),
-          automaticallyImplyLeading: false,
-        ),
-        body: FutureBuilder(
+      appBar: AppBar(
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              var response = await currSession.get("/logout");
+              if (response.statusCode == 200) {
+                setState(() {
+                  session.isLogged = false;
+                  session.id = null;
+                  session.pswd = null;
+                });
+              }
+            },
+          ),
+        ],
+        title: const Text('Shopping List'),
+        automaticallyImplyLeading: false,
+      ),
+      body: RefreshIndicator(
+        child: FutureBuilder(
             future: _fetchShoppingList(),
             builder: (context, snapshot) {
               return snapshot.hasData
@@ -108,7 +109,26 @@ class _ShoppingListViewState extends State<ShoppingListView> {
                   : const Center(
                       child: CircularProgressIndicator(),
                     );
-            }));
+            }),
+        onRefresh: () {
+          return Future(
+            () {
+              setState(() {
+                _latest = false;
+                _newItemId = -1;
+                _newItemName.text = '';
+                _newItemQuantity.text = '';
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Page refreshed'),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 
   Widget _shoppingList(items) {

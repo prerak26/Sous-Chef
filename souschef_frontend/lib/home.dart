@@ -151,10 +151,10 @@ class _HomeViewState extends State<HomeView> {
                 child: TabBarView(
                   children: <Widget>[
                     Container(
-                      child: recipeCards(cards, this),
+                      child: recipeCards(cards, this, "home"),
                     ),
                     Container(
-                      child: recipeCards(bookmarkcards, this),
+                      child: recipeCards(bookmarkcards, this, "home"),
                     ),
                   ],
                 ),
@@ -190,9 +190,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
         backgroundColor: Colors.lightGreen,
-        title: const Center(
-          child: Text('Home'),
-        ),
+        title: const Text('Home'),
         automaticallyImplyLeading: false,
       ),
       body: FutureBuilder(

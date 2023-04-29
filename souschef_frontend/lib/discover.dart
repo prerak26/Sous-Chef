@@ -50,17 +50,20 @@ class _DiscoverViewState extends State<DiscoverView> {
     queries.add("sort=$_sort");
     response = await currSession.get("/recipe?${queries.join('&')}");
     List<dynamic> body = jsonDecode(response.body);
-    
+
     List<Cards> cards = body.map((recipeData) {
       return Cards(
           title: recipeData['title'],
           serves: recipeData['serves'],
           authorid: recipeData['authorid'],
           recipeid: recipeData['recipeid'],
-          rating: (recipeData['averagerating']==null)?recipeData['averagerating']:0,
-          duration: "${recipeData['duration']['hours']} : ${recipeData['duration']['minutes']}");
+          rating: (recipeData['averagerating'] == null)
+              ? recipeData['averagerating']
+              : 0,
+          duration:
+              "${recipeData['duration']['hours']} : ${recipeData['duration']['minutes']}");
     }).toList();
-    
+
     return cards;
   }
 
@@ -92,9 +95,13 @@ class _DiscoverViewState extends State<DiscoverView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Discover'), actions: [
-        _sortDropdown(),
-      ]),
+      appBar: AppBar(
+        title: const Text('Discover'),
+        actions: [
+          _sortDropdown(),
+        ],
+        backgroundColor: Colors.amber,
+      ),
       drawer: _queryingDrawer(),
       body: Column(children: [
         _searchBox(),
@@ -103,7 +110,7 @@ class _DiscoverViewState extends State<DiscoverView> {
             builder: (context, snapshot) {
               return snapshot.hasData
                   ? Expanded(
-                      child: recipeCards(snapshot.data,this),
+                      child: recipeCards(snapshot.data, this, "discover"),
                     )
                   : const Center(
                       child: CircularProgressIndicator(),
@@ -116,7 +123,8 @@ class _DiscoverViewState extends State<DiscoverView> {
   Widget _queryingDrawer() {
     return Drawer(
       child: SingleChildScrollView(
-        child: Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -135,6 +143,10 @@ class _DiscoverViewState extends State<DiscoverView> {
                                 _keyword = '';
                               });
                             },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.amber,
+                              shadowColor: Colors.amber,
+                            ),
                           ),
                         ]),
                       ),
@@ -161,6 +173,9 @@ class _DiscoverViewState extends State<DiscoverView> {
                                       _tagNames.removeAt(e.key);
                                     });
                                   },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.amber,
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -184,6 +199,9 @@ class _DiscoverViewState extends State<DiscoverView> {
                                 _author = '';
                               });
                             },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.amber,
+                            ),
                           ),
                         ]),
                       ),

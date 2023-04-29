@@ -4,9 +4,7 @@ import 'package:souschef_frontend/recipe.dart';
 Widget authorisationPage(BuildContext context, String caller) {
   return Scaffold(
     appBar: AppBar(
-      title: const Center(
-        child: Text('Authorisation'),
-      ),
+      title: const Text('Authorisation'),
       backgroundColor: caller == "home" ? Colors.lightGreen : Colors.deepOrange,
     ),
     body: Center(
@@ -45,22 +43,26 @@ Widget authorisationPage(BuildContext context, String caller) {
   );
 }
 
-void _onCardTap(int id, BuildContext context, obj) {
+void _onCardTap(int id, BuildContext context, obj, caller) {
   Navigator.of(context)
-      .push(MaterialPageRoute(builder: (context) => RecipePage(recipeId: id)))
+      .push(MaterialPageRoute(
+          builder: (context) => RecipePage(
+                recipeId: id,
+                caller: caller,
+              )))
       .then((_) {
     obj.setState(() {});
   });
 }
 
-Widget recipeCards(data, obj) {
+Widget recipeCards(data, obj, caller) {
   return ListView.builder(
     itemCount: data.length,
     itemBuilder: (context, index) {
       return MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: () => _onCardTap(data[index].recipeid, context, obj),
+          onTap: () => _onCardTap(data[index].recipeid, context, obj, caller),
           child: Card(
             child: ListTile(
               title: Text(data[index].title),

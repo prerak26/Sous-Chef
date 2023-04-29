@@ -73,7 +73,8 @@ class _RecipeFormState extends State<RecipeForm> {
         }
         _durationcontroller.text =
             '${t!['duration']['hours'] ?? 00}:${t!['duration']['minutes'] ?? 00}';
-        ptDuration = 'PT${t!['duration']['hours'] ?? 00}H${t!['duration']['minutes'] ?? 00}M';
+        ptDuration =
+            'PT${t!['duration']['hours'] ?? 00}H${t!['duration']['minutes'] ?? 00}M';
         return t;
       } else {
         throw Exception('Failed to load recipe/${widget.recipeId}');
@@ -172,9 +173,9 @@ class _RecipeFormState extends State<RecipeForm> {
   @override
   initState() {
     super.initState();
-    _fetchrecipe().then((value) {setState(() {
-      
-    });});
+    _fetchrecipe().then((value) {
+      setState(() {});
+    });
   }
 
   // tag auto complete widget
@@ -413,6 +414,7 @@ class _RecipeFormState extends State<RecipeForm> {
         title: (widget.recipeId == -1)
             ? const Text('Add Recipe')
             : const Text("Update Recipe"),
+        backgroundColor: Colors.lightGreen,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -778,6 +780,8 @@ class _RecipeFormState extends State<RecipeForm> {
               ElevatedButton(
                 onPressed: _saveRecipe,
                 child: const Text('Save Recipe'),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightGreen),
               ),
             ],
           ),

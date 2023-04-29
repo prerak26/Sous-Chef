@@ -92,8 +92,9 @@ class _ShoppingListViewState extends State<ShoppingListView> {
             },
           ),
         ],
-        title: const Text('Shopping List'),
         automaticallyImplyLeading: false,
+        backgroundColor: Colors.deepOrange,
+        title: const Text('Shopping List'),
       ),
       body: RefreshIndicator(
         child: FutureBuilder(
@@ -137,11 +138,8 @@ class _ShoppingListViewState extends State<ShoppingListView> {
         padding: const EdgeInsets.all(8),
         itemCount: items.length,
         itemBuilder: (BuildContext context, int index) {
-          return Container(
-            color: Colors.amber,
-            child: Center(
-              child: _shoppingListItem(items[index]),
-            ),
+          return Center(
+            child: _shoppingListItem(items[index]),
           );
         },
         separatorBuilder: (BuildContext context, int index) => const Divider(),
@@ -150,55 +148,47 @@ class _ShoppingListViewState extends State<ShoppingListView> {
   }
 
   Widget _shoppingListItem(item) {
-    return Row(children: [
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: RichText(
-          text: TextSpan(
-            style: const TextStyle(
-              fontSize: 20.0,
-              color: Colors.black,
-            ),
-            children: <TextSpan>[
-              TextSpan(
-                text: item.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+    return Card(
+      child: ListTile(
+        title: Text(item.name),
+        subtitle: Text(
+          '${item.quantity} ${item.kind}',
+        ),
+        trailing: Wrap(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () async {
+                  if (await _removeItem(item) == 200) {
+                    setState(() {
+                      _latest = false;
+                    });
+                  } else if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Failed to delete item.'),
+                    ));
+                  }
+                },
               ),
-              TextSpan(text: ', ${item.quantity} ${item.kind}')
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  setState(() {
+                    _newItemId = item.id;
+                    _newItemName.text = item.name;
+                  });
+                },
+              ),
+            ),
+          ],
         ),
       ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: () async {
-            if (await _removeItem(item) == 200) {
-              setState(() {
-                _latest = false;
-              });
-            } else if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Failed to delete item.'),
-              ));
-            }
-          },
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: () {
-            setState(() {
-              _newItemId = item.id;
-              _newItemName.text = item.name;
-            });
-          },
-        ),
-      ),
-    ]);
+    );
   }
 
   Widget _newItemWidget() {
@@ -265,6 +255,9 @@ class _ShoppingListViewState extends State<ShoppingListView> {
                 }
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepOrange,
+            ),
             child: const Text("Add/Edit Item"),
           ),
         ),

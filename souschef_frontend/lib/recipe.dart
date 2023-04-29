@@ -12,7 +12,8 @@ import 'main.dart';
 
 class RecipePage extends StatefulWidget {
   final int recipeId;
-  const RecipePage({super.key, required this.recipeId});
+  final String caller;
+  const RecipePage({super.key, required this.recipeId, required this.caller});
   @override
   State<RecipePage> createState() => _RecipePageState();
 }
@@ -24,7 +25,6 @@ class _RecipePageState extends State<RecipePage> {
 
     if (response.statusCode == 200) {
       dynamic t = jsonDecode(response.body);
-      print(t);
       return t;
     } else {
       throw Exception('Failed to load recipe/${widget.recipeId}');
@@ -47,6 +47,9 @@ class _RecipePageState extends State<RecipePage> {
             String k = snapshot.data!['lastmodified'];
             return Scaffold(
                 appBar: AppBar(
+                  backgroundColor: widget.caller == "home"
+                      ? Colors.lightGreen
+                      : Colors.amber,
                   actions: <Widget>[
                     snapshot.data!['authorid'] == session.id
                         ? Row(children: [
@@ -69,7 +72,7 @@ class _RecipePageState extends State<RecipePage> {
                                     context: context,
                                     builder: (context) {
                                       return AlertDialog(
-                                        title: Text(
+                                        title: const Text(
                                             'This action will delete this recipe permenantly'),
                                         actions: [
                                           TextButton(
@@ -141,7 +144,9 @@ class _RecipePageState extends State<RecipePage> {
                                 style: GoogleFonts.parisienne(
                                   fontSize: 55,
                                   // fontWeight: FontWeight.bold,
-                                  color: Colors.lightBlue,
+                                  color: widget.caller == "home"
+                                      ? Colors.lightGreen
+                                      : Colors.amber,
                                 ),
                               ),
                             ),
@@ -174,7 +179,9 @@ class _RecipePageState extends State<RecipePage> {
                         Padding(
                           padding: const EdgeInsets.only(right: 15),
                           child: FloatingActionButton.small(
-                            backgroundColor: Colors.lightBlue,
+                            backgroundColor: widget.caller == "home"
+                                ? Colors.lightGreen
+                                : Colors.amber,
                             tooltip: 'Follow Steps',
                             onPressed: () {
                               Navigator.of(context)
@@ -201,7 +208,7 @@ class _RecipePageState extends State<RecipePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16),
@@ -219,7 +226,7 @@ class _RecipePageState extends State<RecipePage> {
                                                 color: Colors.grey[700],
                                               ),
                                             ),
-                                            SizedBox(height: 8),
+                                            const SizedBox(height: 8),
                                             Text(
                                               "Ready in: ${snapshot.data!['duration']['hours'] ?? 0}h ${snapshot.data!['duration']['minute'] ?? 0}m",
                                               style: TextStyle(
@@ -227,7 +234,7 @@ class _RecipePageState extends State<RecipePage> {
                                                 color: Colors.grey[700],
                                               ),
                                             ),
-                                            SizedBox(height: 8),
+                                            const SizedBox(height: 8),
                                             Text(
                                               "Posted on: ${snapshot.data!['lastmodified'].split('T')[0]} ${snapshot.data!['lastmodified'].split('T')[1].split('.')[0]}",
                                               style: TextStyle(
@@ -238,19 +245,19 @@ class _RecipePageState extends State<RecipePage> {
                                           ],
                                         ),
                                       ),
-                                      SizedBox(width: 16),
+                                      const SizedBox(width: 16),
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
+                                          const Text(
                                             "Tags",
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          SizedBox(height: 8),
+                                          const SizedBox(height: 8),
                                           Wrap(
                                             spacing: 8,
                                             children: List.generate(
@@ -259,13 +266,15 @@ class _RecipePageState extends State<RecipePage> {
                                                 label: Text(
                                                   snapshot.data!['tags'][index]
                                                       ['name'],
-                                                  style: TextStyle(
+                                                  style: const TextStyle(
                                                     fontSize: 14,
-                                                    color: Colors.white,
+                                                    color: Colors.black,
                                                   ),
                                                 ),
                                                 backgroundColor:
-                                                    Colors.lightBlue,
+                                                    widget.caller == "home"
+                                                        ? Colors.lightGreen
+                                                        : Colors.amber,
                                               ),
                                             ),
                                           ),
@@ -283,18 +292,22 @@ class _RecipePageState extends State<RecipePage> {
                           padding: const EdgeInsets.only(
                               top: 30, left: 10, right: 10, bottom: 10),
                           child: Row(children: [
-                            const Text(
+                            Text(
                               'Ingredients',
                               style: TextStyle(
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.lightBlue,
+                                color: widget.caller == "home"
+                                    ? Colors.lightGreen
+                                    : Colors.amber,
                               ),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(left: 10),
                               child: FloatingActionButton.small(
-                                backgroundColor: Colors.lightBlue,
+                                backgroundColor: widget.caller == "home"
+                                    ? Colors.lightGreen
+                                    : Colors.amber,
                                 tooltip: 'Add ingredients to cart',
                                 onPressed: () async {
                                   var response = await currSession.post(
@@ -335,13 +348,15 @@ class _RecipePageState extends State<RecipePage> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.lightBlue,
+                                        color: widget.caller == "home"
+                                            ? Colors.lightGreen
+                                            : Colors.amber,
                                       ),
                                     ),
                                     Expanded(
                                       child: Text(
                                         '${snapshot.data!['requirements'][index]['name']} [${snapshot.data!['requirements'][index]['quantity']} ${snapshot.data!['requirements'][index]['kind']}] ',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.normal,
                                           color: Colors.black,
@@ -357,22 +372,24 @@ class _RecipePageState extends State<RecipePage> {
                       ),
                       Row(
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.only(
+                          Padding(
+                            padding: const EdgeInsets.only(
                                 top: 15, left: 10, right: 10, bottom: 20),
                             child: Text(
                               'Ratings',
                               style: TextStyle(
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.lightBlue,
+                                color: widget.caller == "home"
+                                    ? Colors.lightGreen
+                                    : Colors.amber,
                               ),
                             ),
                           ),
                           Expanded(
                             child: Text(
                               '${(double.parse(snapshot.data!['averagerating'] ?? '-1') == -1) ? '-' : double.parse(snapshot.data!['averagerating'])}/5 - ${snapshot.data!['ratingtotal'] ?? 0}(votes)',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.normal,
                                 color: Colors.black,

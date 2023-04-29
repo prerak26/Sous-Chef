@@ -795,6 +795,7 @@ app.delete('/rating/:id', (req, res) => {
 
 // Get user shopping list by id [auth] [Shopping List View]
 app.get('/shoppinglist', (req, res) => {
+  console.log(req.headers);
   session = req.session;
   if (session.userid)
     model.getShoppingList(session.userid)

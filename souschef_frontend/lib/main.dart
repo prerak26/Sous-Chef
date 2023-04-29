@@ -108,6 +108,8 @@ class Session {
   // String baseUrl = "https://sous-chef-backend.onrender.com";
 
   Future<http.Response> get(String path) async {
+    headers['userid'] = session.id ?? "";
+    headers['pswd'] = session.pswd ?? "";
     http.Response response =
         await http.get(Uri.parse(baseUrl + path), headers: headers);
     updateCookie(response);
@@ -115,6 +117,9 @@ class Session {
   }
 
   Future<http.Response> delete(String path) async {
+    headers['userid'] = session.id ?? "";
+    headers['pswd'] = session.pswd ?? "";
+
     http.Response response =
         await http.delete(Uri.parse(baseUrl + path), headers: headers);
     updateCookie(response);
@@ -124,6 +129,8 @@ class Session {
   Future<http.Response> post(String path, dynamic data) async {
     headers['Content-Type'] = 'application/json';
     headers['charset'] = 'UTF-8';
+    headers['userid'] = session.id ?? "";
+    headers['pswd'] = session.pswd ?? "";
     http.Response response = await http.post(Uri.parse(baseUrl + path),
         body: data, headers: headers);
     updateCookie(response);

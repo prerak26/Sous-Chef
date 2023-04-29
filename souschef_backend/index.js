@@ -22,7 +22,10 @@ const onehr = 1000 * 60 * 60;
 app.use(sessions({
   secret: process.env.secret,
   saveUninitialized: true,
-  cookie: { maxAge: onehr },
+  cookie: { 
+    maxAge: onehr, 
+    sameSite: 'none'
+  },
   resave: false
 }));
 app.use(express.urlencoded({ extended: true }));

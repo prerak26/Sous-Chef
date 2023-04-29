@@ -97,20 +97,22 @@ class _ShoppingListViewState extends State<ShoppingListView> {
         title: const Text('Shopping List'),
       ),
       body: RefreshIndicator(
-        child: FutureBuilder(
-            future: _fetchShoppingList(),
-            builder: (context, snapshot) {
-              return snapshot.hasData
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                          _newItemWidget(),
-                          _shoppingList(snapshot.data)
-                        ])
-                  : const Center(
-                      child: CircularProgressIndicator(),
-                    );
-            }),
+        child: SingleChildScrollView(
+          child: FutureBuilder(
+              future: _fetchShoppingList(),
+              builder: (context, snapshot) {
+                return snapshot.hasData
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                            _newItemWidget(),
+                            _shoppingList(snapshot.data)
+                          ])
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      );
+              }),
+        ),
         onRefresh: () {
           return Future(
             () {

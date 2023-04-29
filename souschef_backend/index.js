@@ -542,7 +542,6 @@ app.post('/recipe/shop/:id', (req, res) => {
 
 // Get recipes list [Discover View]
 app.get('/recipe', (req, res) => {
-  // console.log(req.query);
   let query_str = 'WITH boo AS (SELECT 1 AS bo)';
   let filters = [];
   if (req.query.lim === undefined)
@@ -882,7 +881,6 @@ app.delete('/rating/:id', (req, res) => {
 
 // Get user shopping list by id [auth] [Shopping List View]
 app.get('/shoppinglist', (req, res) => {
-  console.log(req.headers);
   model.getChef(req.headers.userid)
     .then(async response => {
       if ((response.length !== 0 && bcrypt.compareSync(req.headers.pswd, response[0].hashedpassword))

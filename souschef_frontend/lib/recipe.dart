@@ -46,91 +46,91 @@ class _RecipePageState extends State<RecipePage> {
             int new_rating = 0;
             String k = snapshot.data!['lastmodified'];
             return Scaffold(
-                appBar: AppBar(
-                  backgroundColor: widget.caller == "home"
-                      ? Colors.lightGreen
-                      : Colors.amber,
-                  actions: <Widget>[
-                    snapshot.data!['authorid'] == session.id
-                        ? Row(children: [
-                            IconButton(
-                              onPressed: () {
-                                Navigator.of(context)
-                                    .push(MaterialPageRoute(
-                                        builder: (context) => RecipeForm(
-                                              recipeId: widget.recipeId,
-                                            )))
-                                    .then((_) => setState(() {}));
-                              },
-                              icon: const Icon(Icons.edit),
-                              tooltip: "Edit Recipe",
-                            ),
-                            IconButton(
-                              onPressed: () async {
-                                bool delete = false;
-                                var temp = await showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: const Text(
-                                            'This action will delete this recipe permenantly'),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                              child: const Text('Cancel')),
-                                          TextButton(
-                                              onPressed: () {
-                                                delete = true;
-                                                Navigator.pop(context);
-                                              },
-                                              child: const Text('Delete')),
-                                        ],
-                                      );
-                                    });
+              appBar: AppBar(
+                backgroundColor:
+                    widget.caller == "home" ? Colors.lightGreen : Colors.amber,
+                actions: <Widget>[
+                  snapshot.data!['authorid'] == session.id
+                      ? Row(children: [
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) => RecipeForm(
+                                            recipeId: widget.recipeId,
+                                          )))
+                                  .then((_) => setState(() {}));
+                            },
+                            icon: const Icon(Icons.edit),
+                            tooltip: "Edit Recipe",
+                          ),
+                          IconButton(
+                            onPressed: () async {
+                              bool delete = false;
+                              var temp = await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text(
+                                          'This action will delete this recipe permenantly'),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('Cancel')),
+                                        TextButton(
+                                            onPressed: () {
+                                              delete = true;
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Delete')),
+                                      ],
+                                    );
+                                  });
 
-                                if (delete) {
-                                  var response = await currSession
-                                      .delete('/recipe/${widget.recipeId}');
-                                  Navigator.pop(context);
+                              if (delete) {
+                                var response = await currSession
+                                    .delete('/recipe/${widget.recipeId}');
+                                Navigator.pop(context);
+                              }
+                            },
+                            icon: const Icon(Icons.delete_forever),
+                            tooltip: 'Delete recipe permenantly',
+                          )
+                        ])
+                      : isbookmark
+                          ? IconButton(
+                              icon: const Icon(Icons.bookmark_added),
+                              tooltip: 'Remove from bookmarks',
+                              onPressed: () async {
+                                var response = await currSession
+                                    .delete("/bookmark/${widget.recipeId}");
+                                if (response.statusCode == 200) {
+                                  setState(() {
+                                    isbookmark = false;
+                                  });
                                 }
                               },
-                              icon: const Icon(Icons.delete_forever),
-                              tooltip: 'Delete recipe permenantly',
                             )
-                          ])
-                        : isbookmark
-                            ? IconButton(
-                                icon: const Icon(Icons.bookmark_added),
-                                tooltip: 'Remove from bookmarks',
-                                onPressed: () async {
-                                  var response = await currSession
-                                      .delete("/bookmark/${widget.recipeId}");
-                                  if (response.statusCode == 200) {
-                                    setState(() {
-                                      isbookmark = false;
-                                    });
-                                  }
-                                },
-                              )
-                            : IconButton(
-                                icon: const Icon(Icons.bookmark_add),
-                                tooltip: 'Add to Bookmarked',
-                                onPressed: () async {
-                                  var response = await currSession.post(
-                                      "/bookmark/${widget.recipeId}",
-                                      json.encode({}));
-                                  if (response.statusCode == 200) {
-                                    setState(() {
-                                      isbookmark = true;
-                                    });
-                                  }
-                                },
-                              ),
-                  ],
-                  title: Text("${snapshot.data!['title']}"),
-                ),
-                body: Column(
+                          : IconButton(
+                              icon: const Icon(Icons.bookmark_add),
+                              tooltip: 'Add to Bookmarked',
+                              onPressed: () async {
+                                var response = await currSession.post(
+                                    "/bookmark/${widget.recipeId}",
+                                    json.encode({}));
+                                if (response.statusCode == 200) {
+                                  setState(() {
+                                    isbookmark = true;
+                                  });
+                                }
+                              },
+                            ),
+                ],
+                title: Text("${snapshot.data!['title']}"),
+              ),
+              body: SingleChildScrollView(
+                child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Wrap(children: [
@@ -142,7 +142,7 @@ class _RecipePageState extends State<RecipePage> {
                               child: Text(
                                 'Recipe',
                                 style: GoogleFonts.parisienne(
-                                  fontSize: 55,
+                                  fontSize: 40,
                                   // fontWeight: FontWeight.bold,
                                   color: widget.caller == "home"
                                       ? Colors.lightGreen
@@ -157,7 +157,11 @@ class _RecipePageState extends State<RecipePage> {
                                     padding:
                                         const EdgeInsets.only(top: 8, right: 8),
                                     child: Text(
-                                      snapshot.data!['title'],
+                                      snapshot.data!['title'].length > 15
+                                          ? snapshot.data!['title']
+                                                  .substring(0, 15) +
+                                              '...'
+                                          : snapshot.data!['title'],
                                       style: GoogleFonts.merriweather(
                                         fontSize: 25,
                                         fontWeight: FontWeight.bold,
@@ -245,43 +249,42 @@ class _RecipePageState extends State<RecipePage> {
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(width: 16),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            "Tags",
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Wrap(
-                                            spacing: 8,
-                                            children: List.generate(
-                                              snapshot.data!['tags'].length,
-                                              (index) => Chip(
-                                                label: Text(
-                                                  snapshot.data!['tags'][index]
-                                                      ['name'],
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                backgroundColor:
-                                                    widget.caller == "home"
-                                                        ? Colors.lightGreen
-                                                        : Colors.amber,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                      // const SizedBox(width: 16),
                                     ],
                                   ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "Tags",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      children: List.generate(
+                                        snapshot.data!['tags'].length,
+                                        (index) => Chip(
+                                          label: Text(
+                                            snapshot.data!['tags'][index]
+                                                ['name'],
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          backgroundColor:
+                                              widget.caller == "home"
+                                                  ? Colors.lightGreen
+                                                  : Colors.amber,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -398,9 +401,20 @@ class _RecipePageState extends State<RecipePage> {
                           ),
                         ],
                       )
-                    ]));
+                    ]),
+              ),
+            );
           } else {
-            return const CircularProgressIndicator();
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor:
+                    widget.caller == "home" ? Colors.lightGreen : Colors.amber,
+                title: const Text("Recipe"),
+              ),
+              body: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
           }
         });
   }
